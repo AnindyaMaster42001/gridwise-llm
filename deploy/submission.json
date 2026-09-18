@@ -1,11 +1,11 @@
 {
   "public_base_url": "https://gridwise-llm-anindya3.vercel.app",
   "repository_url": "https://github.com/AnindyaMaster42001/gridwise-llm",
-  "image_reference": "ghcr.io/anindyamaster42001/gridwise-llm@sha256:e74f0d56957edd23f86219d733aa22e11ff5aabffeeac8dc6ba7eda2bb52a32d",
-  "previous_image_reference": null,
+  "image_reference": "ghcr.io/anindyamaster42001/gridwise-llm@sha256:a2dd9753cf2ef6e25f9243332a9b45b6b695b423242d51e98bcf88bf942eb7fa",
+  "previous_image_reference": "ghcr.io/anindyamaster42001/gridwise-llm@sha256:e74f0d56957edd23f86219d733aa22e11ff5aabffeeac8dc6ba7eda2bb52a32d",
   "video_url": null,
   "video_duration_seconds": null,
-  "verified_commit": "bde58e9d1faeb3d73dbc355495341fec513be996",
+  "verified_commit": "5422c82bf0e785021baef36457d6284a1f63b84b",
   "primary_provider": "openai_compatible (OpenRouter)",
   "primary_model": "nex-agi/nex-n2.5-mini:free",
   "fallback_provider": "gemini",
@@ -47,18 +47,18 @@
     "failover": "VERIFIED under real quota exhaustion: both models 429 -> regex backup -> still a valid 200 at the optimal cost"
   },
   "image_tags": [
-    "ghcr.io/anindyamaster42001/gridwise-llm:v1",
-    "ghcr.io/anindyamaster42001/gridwise-llm:bde58e9"
+    "ghcr.io/anindyamaster42001/gridwise-llm:v2",
+    "ghcr.io/anindyamaster42001/gridwise-llm:5422c82",
+    "ghcr.io/anindyamaster42001/gridwise-llm:latest"
   ],
   "_image_verification": {
-    "built_from_commit": "bde58e9d1faeb3d73dbc355495341fec513be996",
-    "digest": "sha256:e74f0d56957edd23f86219d733aa22e11ff5aabffeeac8dc6ba7eda2bb52a32d",
-    "contains_gemini_fix": "verified inside the image: thinkingLevel present in app/llm/client.py, baked LLM_MODEL=gemini-3.5-flash",
-    "visibility": "PUBLIC (GitHub API reports visibility=public)",
-    "anonymous_pull": "VERIFIED from a logged-out daemon, by DIGEST: pull succeeded",
-    "anonymous_manifest": "HTTP 200 for both :v1 and the digest, using only GHCR's anonymous pull token",
-    "run_from_pulled_image": "started as uid 10001, /health 200 within 2s, docker HEALTHCHECK reporting",
-    "contract_from_pulled_image": "local judge replica 10/10 cases valid, schema 10/10, optimization 10/10, p95 0.592s, 0% failures (fallback path, no credentials supplied)"
+    "digest": "sha256:a2dd9753cf2ef6e25f9243332a9b45b6b695b423242d51e98bcf88bf942eb7fa",
+    "built_from_commit": "5422c82bf0e785021baef36457d6284a1f63b84b",
+    "baked_config": "provider=openai_compatible, model=nex-agi/nex-n2.5-mini:free, base=https://openrouter.ai/api/v1, fallback=gemini-3.5-flash, timeout=10s - read back from inside the running image",
+    "no_credentials": "no API_KEY in the image environment; zero secret-shaped strings in the layer history",
+    "container_check": "passed: startup 1.77s, uid 10001, read-only rootfs, healthy, clean shutdown, sample request valid against organizer ground truth",
+    "visibility": "package is public; previous digest verified pullable from a logged-out daemon",
+    "rollback": "previous_image_reference above is the last known-good image and remains pullable"
   },
   "_model_selection": {
     "method": "every candidate run through our own prompt, client and guardrails against six trap notes covering all five directive types plus a distractor",
