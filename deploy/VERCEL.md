@@ -45,6 +45,38 @@ network — not a browser you are already signed into.
 
 ---
 
+## 0. Check your git commit email first
+
+Vercel matches the **commit author email** of the deployed commit to a GitHub
+account. If it does not match one, the deployment is rejected with
+`Deployment Blocked` and the API reports:
+
+```json
+seatBlock: { "blockCode": "TEAM_ACCESS_REQUIRED", "isVerified": false }
+```
+
+That message says nothing about email, and the CLI prints a cheerful
+`Building…` and then simply stops — so this looks like a quota problem or a
+stuck build when it is neither. Check it before you spend time anywhere else:
+
+```bash
+git config user.email          # must be an address on your GitHub account
+git log -1 --format='%an <%ae>'
+```
+
+If it is wrong, set it for this repository and make a fresh commit — Vercel
+reads the email of the commit being deployed, so an already-pushed commit with
+the wrong address will keep being rejected until a correct one sits on top:
+
+```bash
+git config --local user.email "you@example.com"
+git config --local user.name  "your-github-username"
+```
+
+A machine shared with other accounts is the usual cause: a global
+`user.email` belonging to some other service gets picked up silently. Setting
+it per-repository avoids changing anything for your other projects.
+
 ## 1. Log in and link the project
 
 The CLI login is interactive, so run these yourself:
