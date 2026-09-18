@@ -1,0 +1,30 @@
+{
+  "public_base_url": null,
+  "repository_url": "https://github.com/AnindyaMaster42001/gridwise-llm",
+  "image_reference": null,
+  "previous_image_reference": null,
+  "video_url": null,
+  "video_duration_seconds": null,
+  "verified_commit": "88d75fa0de1290e4deb7b82dea2b06248d995132",
+  "primary_provider": "gemini",
+  "primary_model": "gemini-2.5-flash",
+  "fallback_provider": "gemini",
+  "fallback_model": "gemini-3-flash-preview",
+  "external_sample_report": null,
+  "fresh_machine_reviewer": null,
+  "_verified_locally": {
+    "commit": "88d75fa0de1290e4deb7b82dea2b06248d995132",
+    "tests": "301 passed with --integration, 0 failed",
+    "public_samples_live_llm": "10/10 valid against organizer ground truth, 10/10 interpretation match, mean cost ratio 1.0000",
+    "llm_in_path": "confirmed source=llm end to end, including from inside the container with a runtime-injected key",
+    "container_check": "passed: startup 2.95s, non-root uid 10001, read-only rootfs, no secret patterns in image, healthy, clean shutdown",
+    "local_image_id": "sha256:f672f19b3f666d6b2d670cba9cd7ef28574131d1eee76f8166d2c2f49519fbb9",
+    "latency_local": "median 4.18s, p95 6.58s over the 10 public cases via HTTP"
+  },
+  "_open_blockers": {
+    "public_base_url": "no hosting platform selected or credentialed yet",
+    "image_reference": "image builds and passes container_check locally, but has never been pushed; a local build is not evidence of a pullable registry image",
+    "video_url": "script exists at deploy/VIDEO_SCRIPT.md; not recorded",
+    "provider_quota": "CRITICAL: the configured Gemini key is free tier, limited to 20 requests per day per model (quotaId GenerateRequestsPerDayPerProjectPerModel-FreeTier). This cannot serve a judged round. Enable billing on the Google Cloud project, or add a second independent provider key, before submitting."
+  }
+}

@@ -42,11 +42,27 @@ not implement production code in another member's files.
 
 ## Model configuration
 
-The selected primary is **Google Gemini `gemini-3.1-flash-lite`**. The fallback
+The selected primary is **Google Gemini `gemini-2.5-flash`**. The fallback
 is **OpenRouter `openrouter/free`**, through the existing `openai_compatible`
 provider setting and `https://openrouter.ai/api/v1` base URL. These are configured
 in [.env.example](.env.example) and [the deployment template](deploy/runtime.env.example).
 Actual provider calls remain Lane B's integration responsibility.
+
+`gemini-2.5-flash` was selected by measurement against the ten public cases, not by
+default: it answered 4/4 probes correctly at a 2.86 s median, where both `-flash-lite`
+variants returned `[13, 14, 15]` for a 1 PM-3 PM window and so failed the
+end-exclusive rule outright, and the newer `gemini-3.x-flash` models were either
+shedding load with HTTP 503 or running past 15 s.
+
+> **Provider quota is a release blocker, not a detail.** A free-tier Gemini key is
+> capped at **20 requests per day, per model** (`quotaId
+> GenerateRequestsPerDayPerProjectPerModel-FreeTier`). That cannot serve a judged
+> round: once it is spent every request silently falls back to the deterministic
+> backup, which does not satisfy the mandatory-LLM requirement. Enable billing on
+> the Google Cloud project, or configure a second independent provider key, before
+> submitting. The quota is counted per model, so a fallback pointed at a *different*
+> model has its own allowance and buys some headroom, but it is a stopgap and not a
+> substitute for billing. `/health` does not detect an exhausted quota.
 
 Google documents the [Gemini model identifier](https://ai.google.dev/gemini-api/docs/models).
 OpenRouter documents its [free model router](https://openrouter.ai/openrouter/free)
