@@ -27,8 +27,7 @@
     "vercel_deployment_protection": "RESOLVED: the project shipped with Vercel Authentication on, which answered anonymous callers with a 302 to vercel.com/sso-api. Disabled; verified off via the API. Re-check after any project setting change.",
     "fallback_is_not_independent": "LLM_API_KEY and LLM_FALLBACK_API_KEY in the supplied env file are the SAME VALUE. Pointing the fallback at a different Gemini model does buy a separate per-model daily allowance, which is why it is kept, but it is one key on one project: a revocation, a billing stop or a ban takes both paths down together.",
     "provider_quota": "Free tier. The key answers now, but free-tier daily caps are small and a judged round can exhaust them; a spent quota degrades silently to the regex backup, which does NOT satisfy the mandatory-LLM requirement. Enable billing before the round, and do not spend the day's allowance on casual testing.",
-    "key_exposed_in_chat": "The submitted API key was pasted into a chat transcript. It works, so keep it for the round, but ROTATE IT AFTERWARDS at https://aistudio.google.com/apikey.",
-    "image_visibility": "BLOCKING: the GHCR package is PRIVATE. A logged-out `docker pull` of the digest returns 'unauthorized' and the anonymous registry manifest returns HTTP 401 - the judge would see exactly that, which scores the same as submitting no image. GitHub exposes no REST endpoint for package visibility, so flip it in the UI: https://github.com/users/AnindyaMaster42001/packages/container/gridwise-llm/settings -> Danger Zone -> Change visibility -> Public. Then re-verify with a logged-out pull."
+    "key_exposed_in_chat": "The submitted API key was pasted into a chat transcript. It works, so keep it for the round, but ROTATE IT AFTERWARDS at https://aistudio.google.com/apikey."
   },
   "hosting_platform": "vercel (framework preset: fastapi, app/main.py at root)",
   "_fixed_in_release_prep": {
@@ -56,7 +55,10 @@
     "built_from_commit": "bde58e9d1faeb3d73dbc355495341fec513be996",
     "digest": "sha256:e74f0d56957edd23f86219d733aa22e11ff5aabffeeac8dc6ba7eda2bb52a32d",
     "contains_gemini_fix": "verified inside the image: thinkingLevel present in app/llm/client.py, baked LLM_MODEL=gemini-3.5-flash",
-    "container_check": "passed: startup 1.95s, uid 10001, read-only rootfs, no secret patterns, healthy, clean shutdown",
-    "anonymous_pull": "FAILS while the package is private - see image_visibility blocker"
+    "visibility": "PUBLIC (GitHub API reports visibility=public)",
+    "anonymous_pull": "VERIFIED from a logged-out daemon, by DIGEST: pull succeeded",
+    "anonymous_manifest": "HTTP 200 for both :v1 and the digest, using only GHCR's anonymous pull token",
+    "run_from_pulled_image": "started as uid 10001, /health 200 within 2s, docker HEALTHCHECK reporting",
+    "contract_from_pulled_image": "local judge replica 10/10 cases valid, schema 10/10, optimization 10/10, p95 0.592s, 0% failures (fallback path, no credentials supplied)"
   }
 }
