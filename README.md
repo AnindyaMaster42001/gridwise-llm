@@ -288,18 +288,36 @@ deployment command input, not application configuration. A clean-machine pull
 test and an external network check remain required before these instructions
 can be claimed verified against a registry.
 
-## Deployment and video
+## Deployment
 
-Follow [deploy/RUNBOOK.md](deploy/RUNBOOK.md); complete
-[deploy/submission.example.json](deploy/submission.example.json) as
-`deploy/submission.json`. Keep an earlier verified image available for rollback.
-No hosting target or registry credentials have been supplied yet.
+The submitted service runs on **Vercel**, from `api/index.py`, which re-exports
+the same FastAPI application as the container and the local server — one code
+path, no host-specific behaviour. Every path is rewritten to that function by
+`vercel.json`, so `/health` and `/optimize-energy` keep their exact names, and
+`maxDuration` is raised to 60 s because the default 10 s would time out a
+request whose p95 is 6.6 s.
 
-[The 2:50 demo script](deploy/VIDEO_SCRIPT.md) prepares the required tie-break
-video. Record actual successful runtime evidence after integration; the script
-is not a recorded or submitted video. The video is the **first** tie-breaker,
-followed by application, interpretation, optimization, schema, reliability and
-deployment, documentation, and exceptional engineering.
+Full procedure, including the environment variables, the outside-network check
+and rollback: **[deploy/VERCEL.md](deploy/VERCEL.md)**.
+
+```bash
+BASE=https://<deployment>.vercel.app
+curl -sS "$BASE/health"                                  # {"status":"ok"}
+python -m harness.judge --base-url "$BASE" --repeat 3     # full local score
+```
+
+The container in [deploy/RUNBOOK.md](deploy/RUNBOOK.md) is the fallback
+execution path and is not serverless: no duration cap, no cold starts, and an
+interpretation cache that survives between requests.
+
+## Video
+
+[The 2:50 demo script](deploy/VIDEO_SCRIPT.md) and
+[the recording guide](deploy/VIDEO_GUIDE.md) prepare the tie-break video.
+The video carries no base points and is reviewed only when teams finish on the
+same total score — which is exactly what happens at a qualification boundary.
+Tie-break order after it: application, interpretation, optimization, schema,
+reliability and deployment, documentation, exceptional engineering.
 
 ## Dependencies, credits, and limits
 

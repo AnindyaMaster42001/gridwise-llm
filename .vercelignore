@@ -1,0 +1,28 @@
+# Keep the function bundle under Vercel's 250 MB uncompressed limit and out of
+# the judge's way. Only app/ and api/ are needed at runtime.
+.git
+.github
+.venv
+venv
+__pycache__
+**/__pycache__
+*.pyc
+.pytest_cache
+
+tests/
+harness/
+docs/
+deploy/
+scripts/
+*.pdf
+*.md
+!/README.md
+Dockerfile
+.dockerignore
+docker-compose.yml
+Makefile
+pytest.ini
+requirements-dev.txt
+.env
+.env.*
+!.env.example
