@@ -1,0 +1,16 @@
+# Allowlist: no .env, Git history, PDFs, virtualenv, tests or local reports.
+**
+!Dockerfile
+!.dockerignore
+!requirements.txt
+!app/
+!app/**
+!deploy/
+!deploy/wheels/
+!deploy/wheels/.gitkeep
+!deploy/wheels/*.whl
+app/**/__pycache__/
+app/**/*.pyc
+app/**/.env*
+app/**/*.key
+app/**/*.pem
