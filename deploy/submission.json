@@ -1,5 +1,5 @@
 {
-  "public_base_url": null,
+  "public_base_url": "https://gridwise-llm-anindya3.vercel.app",
   "repository_url": "https://github.com/AnindyaMaster42001/gridwise-llm",
   "image_reference": null,
   "previous_image_reference": null,
@@ -23,14 +23,24 @@
   },
   "_open_blockers": {
     "provider_quota": "CRITICAL AND FIRST: the configured Gemini key is free tier, 20 requests/day/model (quotaId GenerateRequestsPerDayPerProjectPerModel-FreeTier). A judged round exhausts this in minutes, after which every request silently falls back to the deterministic interpreter, which does not satisfy the mandatory-LLM requirement. Enable billing on the Google Cloud project, or add a key from a different vendor, BEFORE deploying.",
-    "public_base_url": "deploy/VERCEL.md is ready; needs `npx vercel login` (interactive) then `npx vercel --prod`. Vercel maxDuration is raised to 60s in vercel.json because the Hobby default of 10s would time out a request whose measured p95 is 6.58s.",
+    "public_base_url": "DEPLOYED AND REACHABLE, but NOT yet submittable: LLM_API_KEY is not set on the Vercel project, so /optimize-energy is served by the deterministic fallback and the mandatory-LLM requirement is not met. Add the provider keys, redeploy, and confirm plan_summary no longer says 'deterministic backup interpreter'.",
     "image_reference": "image builds and passes container_check; never pushed. Needs `docker login` then push with an exact tag, and the digest recorded here.",
     "video_url": "script at deploy/VIDEO_SCRIPT.md, recording guide at deploy/VIDEO_GUIDE.md; not recorded.",
-    "repo_visibility": "repository is PRIVATE, which is correct during the event. It must be made PUBLIC after the submission deadline or it cannot be evaluated."
+    "repo_visibility": "repository is PRIVATE, which is correct during the event. It must be made PUBLIC after the submission deadline or it cannot be evaluated.",
+    "vercel_deployment_protection": "RESOLVED: the project shipped with Vercel Authentication on, which answered anonymous callers with a 302 to vercel.com/sso-api. Disabled; verified off via the API. Re-check after any project setting change."
   },
-  "hosting_platform": "vercel",
+  "hosting_platform": "vercel (framework preset: fastapi, app/main.py at root)",
   "_fixed_in_release_prep": {
     "dockerfile_model": "the image defaulted to gemini-3.1-flash-lite, which the README's own measurement records as failing the end-exclusive hour rule ([13,14,15] for 1 PM-3 PM). Corrected to the measured gemini-2.5-flash.",
-    "fallback_vendor": "four different fallbacks were configured across Dockerfile, .env.example, runtime.env.example and this manifest. Standardised on a DIFFERENT vendor (groq) so the fallback fails independently of the primary; no fallback is baked into the image."
+    "fallback_vendor": "four different fallbacks were configured across Dockerfile, .env.example, runtime.env.example and this manifest. Standardised on a DIFFERENT vendor (groq) so the fallback fails independently of the primary; no fallback is baked into the image.",
+    "vercel_routing": "the first deployments 404'd every route. Vercel detects this project as framework 'fastapi' and serves app/main.py at the root; the api/index.py adapter was never used, and the rewrite in vercel.json replaced the received path so /health arrived as /api/index/health. The functions glob named api/index.py too, so maxDuration:60 never applied and the function ran on the 10s Hobby default against a 6.58s p95."
+  },
+  "_live_verification": {
+    "url": "https://gridwise-llm-anindya3.vercel.app",
+    "health": "200 {\"status\":\"ok\"}",
+    "judge_local_replica": "73.00/100 measured, 20/20 cases valid, p95 0.418s, 0% failures (on the FALLBACK path, no LLM key)",
+    "malformed_json": "400",
+    "unknown_route": "404 in our error shape",
+    "deployment_protection": "disabled, verified anonymously with curl"
   }
 }
