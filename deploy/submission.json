@@ -5,7 +5,7 @@
   "previous_image_reference": "ghcr.io/anindyamaster42001/gridwise-llm@sha256:e74f0d56957edd23f86219d733aa22e11ff5aabffeeac8dc6ba7eda2bb52a32d",
   "video_url": null,
   "video_duration_seconds": null,
-  "verified_commit": "5422c82bf0e785021baef36457d6284a1f63b84b",
+  "verified_commit": "052773e702f02c675373a6c7903a17ebd5da096b",
   "primary_provider": "openai_compatible (OpenRouter)",
   "primary_model": "nex-agi/nex-n2.5-mini:free",
   "fallback_provider": "gemini",
@@ -34,17 +34,16 @@
     "fallback_vendor": "four different fallbacks were configured across Dockerfile, .env.example, runtime.env.example and this manifest. Standardised on a DIFFERENT vendor (groq) so the fallback fails independently of the primary; no fallback is baked into the image.",
     "vercel_routing": "the first deployments 404'd every route. Vercel detects this project as framework 'fastapi' and serves app/main.py at the root; the api/index.py adapter was never used, and the rewrite in vercel.json replaced the received path so /health arrived as /api/index/health. The functions glob named api/index.py too, so maxDuration:60 never applied and the function ran on the 10s Hobby default against a 6.58s p95.",
     "model_availability": "gemini-2.5-flash returns 404 'no longer available to new users' on freshly-created keys, so the configured primary could never have worked on the submitted key. Re-measured and switched to gemini-3.5-flash, which answers every trap note correctly.",
-    "gemini3_thinking_budget": "CONFIRMED and fixed. Gemini 3 draws thinking from maxOutputTokens; gemini-3.5-flash took 19.0s with 377 thinking tokens on a closed-form extraction, and gemini-3-flash-preview returned no text at all ('no JSON object found'). Setting thinkingConfig.thinkingLevel='low' for gemini-3+ cuts it to 7.1s with every trap still correct."
+    "gemini3_thinking_budget": "CONFIRMED and fixed. Gemini 3 draws thinking from maxOutputTokens; gemini-3.5-flash took 19.0s with 377 thinking tokens on a closed-form extraction, and gemini-3-flash-preview returned no text at all ('no JSON object found'). Setting thinkingConfig.thinkingLevel='low' for gemini-3+ cuts it to 7.1s with every trap still correct.",
+    "vercel_commit_email_block": "Four deployments were rejected with seatBlock TEAM_ACCESS_REQUIRED / isVerified=false. Vercel matches the deployed commit's AUTHOR EMAIL to a GitHub account; commits were being authored with an address from this machine's global git config that belongs to a different service. Fixed with a repository-local identity and documented as step 0 of deploy/VERCEL.md. The API error names neither email nor git, and the CLI prints 'Building...' and then stops silently, so it reads like a quota or build-slot problem."
   },
   "_live_verification": {
     "url": "https://gridwise-llm-anindya3.vercel.app",
-    "health": "200 {\"status\":\"ok\"}",
-    "llm_in_path": "VERIFIED 2026-09-18: one live request served BY THE MODEL (plan_summary carries no fallback notice); interpretation matched organizer ground truth exactly; total_cost_bdt 38365.0 == reference for SAMPLE-01",
-    "latency_note": "that request took 11.2s including a cold start. The model call alone measures 7.1s with thinkingLevel=low. Expect 2/3 latency points, not 3/3; keep the function warm during judging.",
-    "routing": "unknown route 404s in our error shape, malformed JSON 400s",
-    "deployment_protection": "disabled, verified anonymously with curl",
-    "env_vars": "12 on production and preview, all hidden/secret",
-    "failover": "VERIFIED under real quota exhaustion: both models 429 -> regex backup -> still a valid 200 at the optimal cost"
+    "deployment": "gridwise-4v3wvz2ls (both production aliases resolve to it)",
+    "health": "200 on both aliases",
+    "llm_in_path": "VERIFIED: served by the model, interpretation matched organizer ground truth, cost 38365.0 == reference for SAMPLE-01",
+    "latency": "5.52s end to end on the OpenRouter primary, down from 8.77s on the previous Gemini-primary deployment",
+    "config_live": "openai_compatible / nex-agi/nex-n2.5-mini:free, fallback gemini/gemini-3.5-flash"
   },
   "image_tags": [
     "ghcr.io/anindyamaster42001/gridwise-llm:v2",
