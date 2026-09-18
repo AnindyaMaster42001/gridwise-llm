@@ -54,6 +54,9 @@ _TAIL_RESERVE_S = 3.0
 # Below this much remaining budget, skip the model rather than start a call that
 # cannot finish. Ninad's LLM_TIMEOUT_S is the primary control; this is a backstop.
 _MIN_MODEL_BUDGET_S = 3.0
+# A solve always gets at least this long, even past the deadline: the LP takes
+# milliseconds, and abandoning it would cost a whole case for nothing.
+_MIN_SOLVE_BUDGET_S = 0.25
 
 
 # ==========================================================================
@@ -257,15 +260,26 @@ async def _call_interpreter(
             log.warning("request_id=%s model call exceeded %.1fs; using backup", request_id, budget_s)
         except InterpretationUnavailable:
             log.warning("request_id=%s every model provider failed; using backup", request_id)
-        except Exception:
-            log.exception("request_id=%s interpreter raised; using backup", request_id)
+        except Exception as exc:
+            # Type only, never the message and never a traceback: a provider's
+            # exception text can carry a URL token or an echoed auth header, and
+            # the Guide forbids secrets in logs as firmly as in responses.
+            log.warning(
+                "request_id=%s interpreter raised %s; using backup",
+                request_id,
+                type(exc).__name__,
+            )
 
     try:
         return list(rule_based_interpret(notes, battery) or []), "fallback"
     except NotImplementedError:
         log.warning("STUB: app.llm.fallback.rule_based_interpret is not implemented yet")
-    except Exception:
-        log.exception("request_id=%s backup interpreter raised; all notes become no_op", request_id)
+    except Exception as exc:
+        log.warning(
+            "request_id=%s backup interpreter raised %s; all notes become no_op",
+            request_id,
+            type(exc).__name__,
+        )
     return _stub_interpret(notes), "stub"
 
 
@@ -593,7 +607,7 @@ async def _solve_with_ladder(
         )
 
         try:
-            plan = await _call_solver(hours, battery, constraints)
+            plan = await _call_solver(hours, battery, constraints, _remaining(deadline))
         except _OptimizerMissing:
             log.warning("STUB: app.optimizer.solve is not implemented yet")
             break
@@ -636,15 +650,33 @@ class _OptimizerMissing(RuntimeError):
 
 
 async def _call_solver(
-    hours: List[HourInput], battery: BatteryInput, constraints: ConstraintSet
+    hours: List[HourInput],
+    battery: BatteryInput,
+    constraints: ConstraintSet,
+    budget_s: float,
 ) -> Optional[List[HourPlan]]:
-    """Run the LP off the event loop so a solve cannot stall a concurrent /health."""
+    """Run the LP off the event loop, bounded by the remaining request budget.
+
+    The LP is normally milliseconds, so the timeout is a backstop rather than a
+    control: it exists so that one pathological solve cannot push the request
+    past the judge's 30 s limit, which counts as an outright failure. A timed-out
+    thread is abandoned rather than cancelled — Python cannot interrupt a running
+    thread — but the ladder moves on immediately and the thread dies on its own.
+    """
     from app.optimizer import InfeasibleError, solve
 
     try:
-        return list(await asyncio.to_thread(solve, hours, battery, constraints))
+        return list(
+            await asyncio.wait_for(
+                asyncio.to_thread(solve, hours, battery, constraints),
+                timeout=max(_MIN_SOLVE_BUDGET_S, budget_s),
+            )
+        )
     except NotImplementedError:
         raise _OptimizerMissing from None
+    except asyncio.TimeoutError:
+        log.warning("optimizer exceeded its %.2fs slice of the request budget", budget_s)
+        return None
     except InfeasibleError:
         return None
     except Exception:
