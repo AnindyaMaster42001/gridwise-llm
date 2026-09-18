@@ -18,6 +18,7 @@ safely.
 from __future__ import annotations
 
 import json
+import re
 import time
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
@@ -46,6 +47,21 @@ _OPENAI_STYLE = {"openai", "groq", "openai_compatible"}
 # Providers with real constrained decoding against a JSON schema. Everywhere
 # else we ask for a JSON object and lean on interpreter.extract_json.
 _NATIVE_SCHEMA = {"openai", "gemini"}
+
+# Gemini 3 and newer are thinking models, and their thinking is drawn from the
+# SAME maxOutputTokens budget as the answer. Left alone on this task they spend
+# it reasoning and can return a STOP with no text at all, which reaches us as
+# "no JSON object found in the response".
+#
+# Measured on gemini-3.5-flash with this exact prompt:
+#   default          19.00 s, 377 thinking tokens
+#   thinkingLevel low 7.06 s,   0 thinking tokens, all three notes still correct
+#
+# This is closed-form extraction at temperature 0, not a reasoning problem, so
+# the thinking buys nothing and costs us latency we are scored on. Gemini 2.5
+# uses a different field (thinkingBudget) and rejects this one, so the switch is
+# gated on the model family.
+_THINKING_LEVEL_MODELS = re.compile(r"^gemini-(?:[3-9]|\d{2,})", re.IGNORECASE)
 
 
 class LLMError(RuntimeError):
@@ -275,6 +291,8 @@ class LLMClient:
         }
         if schema is not None:
             generation["responseSchema"] = to_gemini_schema(schema)
+        if _THINKING_LEVEL_MODELS.match(self.model):
+            generation["thinkingConfig"] = {"thinkingLevel": "low"}
 
         payload = {
             "systemInstruction": {"parts": [{"text": system}]},
