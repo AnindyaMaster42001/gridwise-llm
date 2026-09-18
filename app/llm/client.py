@@ -52,7 +52,22 @@ class LLMError(RuntimeError):
     """Any provider-side failure: timeout, 4xx, 5xx, unparseable body.
 
     The message must never contain the API key or the raw Authorization header.
+
+    `retryable` says whether trying the SAME provider again could plausibly
+    work. A 429 or a 503 is worth one more attempt; a revoked key or an
+    unknown model name will fail identically every time, and the request budget
+    is better spent reaching the other vendor.
     """
+
+    def __init__(self, message: str, retryable: bool = True) -> None:
+        super().__init__(message)
+        self.retryable = retryable
+
+
+# 4xx codes that mean "this configuration is wrong", not "try again shortly".
+# 408 (timeout), 409 (conflict), 425 (too early) and 429 (rate limit) are
+# excluded on purpose: those do clear on their own.
+_PERMANENT_STATUSES = frozenset({400, 401, 403, 404, 405, 413, 414, 422, 501})
 
 
 @dataclass
@@ -85,16 +100,17 @@ class LLMClient:
         self._client: Optional[httpx.AsyncClient] = None
 
         if self.provider not in _OPENAI_STYLE and self.provider != "gemini":
-            raise LLMError(f"unsupported LLM_PROVIDER: {self.provider!r}")
+            raise LLMError(f"unsupported LLM_PROVIDER: {self.provider!r}", retryable=False)
         if not self.model:
-            raise LLMError(f"no model configured for provider {self.provider!r}")
+            raise LLMError(f"no model configured for provider {self.provider!r}", retryable=False)
         if not self._api_key:
-            raise LLMError(f"no API key configured for provider {self.provider!r}")
+            raise LLMError(f"no API key configured for provider {self.provider!r}", retryable=False)
 
         base = (base_url or "").strip() or DEFAULT_BASE_URLS.get(self.provider, "")
         if not base:
             raise LLMError(
-                f"provider {self.provider!r} needs LLM_BASE_URL to be set"
+                f"provider {self.provider!r} needs LLM_BASE_URL to be set",
+                retryable=False,
             )
         self.base_url = base.rstrip("/")
 
@@ -153,7 +169,8 @@ class LLMClient:
         if response.status_code >= 400:
             raise LLMError(
                 f"{self.provider}: HTTP {response.status_code}: "
-                f"{_redact(response.text[:_BODY_SNIPPET], self._api_key)}"
+                f"{_redact(response.text[:_BODY_SNIPPET], self._api_key)}",
+                retryable=response.status_code not in _PERMANENT_STATUSES,
             )
 
         try:
@@ -228,7 +245,7 @@ class LLMClient:
         except (KeyError, IndexError, TypeError) as exc:
             raise LLMError(f"unexpected completion shape: {_keys(body)}") from exc
         if message.get("refusal"):
-            raise LLMError("provider refused the request")
+            raise LLMError("provider refused the request", retryable=False)
         content = message.get("content")
         if isinstance(content, list):  # some gateways return content parts
             content = "".join(

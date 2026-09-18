@@ -459,6 +459,47 @@ def cmd_selftest(_: argparse.Namespace) -> int:
 
     asyncio.run(failover())
 
+    revoked = {"primary": 0, "fallback": 0}
+
+    def unauthorised_primary(request: httpx.Request) -> httpx.Response:
+        revoked["primary"] += 1
+        return httpx.Response(401, text='{"error":{"message":"Incorrect API key provided"}}')
+
+    def healthy_secondary(request: httpx.Request) -> httpx.Response:
+        revoked["fallback"] += 1
+        return answer(
+            {
+                "interpretations": [
+                    {
+                        "note_index": 0, "directive_type": "no_charge_window",
+                        "hours": [2, 3, 4], "factor": None, "minimum_energy_kwh": None,
+                        "max_grid_kwh": None, "explanation": "ok",
+                    }
+                ]
+            }
+        )
+
+    async def revoked_key() -> None:
+        client_module.reset_clients()
+        client_module._primary = make("openai", unauthorised_primary)
+        client_module._fallback = make("groq", healthy_secondary)
+        client_module._built = True
+        clear_cache()
+
+        entries = await interpret_notes(["no charging from 2 AM to 5 AM"], battery)
+        check(
+            "a revoked key still yields an interpretation via failover",
+            entries[0]["directive_type"] == "no_charge_window",
+        )
+        check(
+            "a revoked key is NOT retried (401 is permanent)",
+            revoked["primary"] == 1,
+            f"called the dead provider {revoked['primary']} times",
+        )
+        check("the healthy vendor answered once", revoked["fallback"] == 1)
+
+    asyncio.run(revoked_key())
+
     def scrambled(request: httpx.Request) -> httpx.Response:
         return answer(
             {

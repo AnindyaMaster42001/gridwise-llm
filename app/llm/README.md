@@ -72,9 +72,10 @@ Measured on 2026-09-18, no provider key configured yet:
 | Check | Result |
 |---|---|
 | `bank` | 95 cases, 16-17 per directive type, 13 distractors, every expectation legal |
-| `selftest` | 34/34 |
+| `selftest` | 37/37 |
 | `fallback` | 95/95 |
 | `samples` | 18/18 notes |
+| end to end, through lanes A and C | 18/18 interpretations exact, 10/10 costs at +0.00 vs the organizer reference |
 | `llm` | **not yet run, needs a key.** This is the number that matters. |
 
 The fallback's 95/95 is **not** a generalisation claim. Those regexes were tuned
@@ -97,18 +98,32 @@ invalid schedule.
 - [x] second identical request is a cache hit, case- and punctuation-insensitive
 - [x] no key appears in any log line or error message (`selftest`, four assertions)
 - [ ] **a real key, and `bench llm` green**. Nothing else in this lane is real until then
-- [ ] revoking the primary key still yields a correct interpretation via failover
-      (the mechanism is tested against a mocked 503; the live rehearsal needs keys)
+- [x] revoking the primary key still yields a correct interpretation via failover,
+      and the dead provider is not retried first (401 is classified permanent, so
+      the budget goes to the other vendor). Mocked; the live rehearsal needs keys.
 - [ ] both providers down → regex fallback, `source="fallback"`, no exception
       escapes. This half belongs to `pipeline.run_pipeline`, which must catch
       `InterpretationUnavailable`; verified here only up to the raise
 
+## Retry policy
+
+`LLMError` carries a `retryable` flag. 429, 5xx, timeouts and transport errors
+are retried once on the same provider (`LLM_MAX_RETRIES`); 401, 403, 404 and 422
+are not, because a revoked key or a wrong model name fails identically the second
+time. This matters against the merged budget: `pipeline` hands interpretation
+`request_budget_s - 3` (about 19 s), and a dead primary that is retried before
+failover can eat it all at `LLM_TIMEOUT_S` per attempt.
+
 ## Notes for the other lanes
 
-- **Anindya:** `await interpret_notes(notes, payload.battery)`, catch
-  `InterpretationUnavailable`, then call `rule_based_interpret(notes, battery)`.
-  Please also `await app.llm.interpreter.aclose()` in the lifespan shutdown so
-  the connection pools close cleanly.
-- **Kabya:** see "What guardrails receives" above.
+- **Anindya:** the shim works as-is, nothing needed. One small thing still open:
+  `lifespan` does not `await app.llm.interpreter.aclose()` on shutdown, so the
+  httpx pools are dropped rather than closed. Harmless for scoring, one line if
+  you want it clean. Your call, it is your file.
+- **Kabya:** see "What guardrails receives" above. I re-probed the merged
+  `validate_interpretations` with every shape my module can emit (blank slot,
+  unknown type, string hours, out-of-range hours, factor as a percentage,
+  reserve above capacity, NaN, missing numeric field). All nine repair or demote
+  correctly and none raises, so the seam holds.
 - **Fayek:** `bench.py selftest` is the part to lift into `tests/test_llm.py` at
   integration: it needs no key and no network.

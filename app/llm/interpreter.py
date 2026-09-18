@@ -145,6 +145,11 @@ async def interpret_notes(notes: List[str], battery: BatteryInput) -> List[Dict[
             except LLMError as exc:
                 failures.append(f"{client.provider}#{attempt}: {exc}")
                 log.warning("LLM call failed (%s attempt %d): %s", client.provider, attempt, exc)
+                if not getattr(exc, "retryable", True):
+                    # A revoked key or a bad model name fails the same way every
+                    # time. Spend the rest of the budget on the other vendor
+                    # instead of on an identical second refusal.
+                    break
                 continue
             except asyncio.CancelledError:
                 raise
