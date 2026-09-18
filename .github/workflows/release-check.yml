@@ -1,0 +1,29 @@
+name: release-check
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  integration-and-container:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -r requirements-dev.txt
+      - name: Required integration gate (stubs fail)
+        env:
+          ALLOW_NO_LLM: '1'
+        run: python -m pytest --integration -q
+      - run: docker build -t gridwise-llm:lane-d .
+      - run: python -m harness.container_check --image gridwise-llm:lane-d
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: container-verification
+          path: harness/reports/container.json
+          if-no-files-found: ignore

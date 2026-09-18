@@ -3,7 +3,8 @@
     "purpose": "Paraphrase robustness bank. 5 of the 25 interpretation points are scored on hidden paraphrases of the same rule, so every directive type needs many wordings that the public pack does not contain.",
     "owner": "Member B writes the notes, Member D wires them into tests/test_paraphrase.py",
     "usage": "Each entry is a note plus the ground truth it must resolve to under the battery in `battery_context`. Hours follow the start-inclusive / end-exclusive convention.",
-    "target": "at least 12 entries per directive type before submission"
+    "target": "at least 12 entries per directive type before submission",
+    "coverage": "12 independently authored phrasings per type; synthetic data; not official hidden cases."
   },
   "battery_context": {
     "capacity_kwh": 200,
@@ -15,28 +16,772 @@
   "cases": [
     {
       "note": "PV production will drop to about 20% between 13:00 and 15:00.",
-      "expected": {"directive_type": "solar_reduction", "hours": [13, 14], "factor": 0.2}
+      "expected": {
+        "directive_type": "solar_reduction",
+        "hours": [
+          13,
+          14
+        ],
+        "factor": 0.2
+      }
     },
     {
       "note": "Panel washing from one until three will leave roughly one-fifth of normal solar output.",
-      "expected": {"directive_type": "solar_reduction", "hours": [13, 14], "factor": 0.2}
+      "expected": {
+        "directive_type": "solar_reduction",
+        "hours": [
+          13,
+          14
+        ],
+        "factor": 0.2
+      }
     },
     {
       "note": "Expect an 80% reduction in rooftop solar during the 1-3 PM maintenance window.",
-      "expected": {"directive_type": "solar_reduction", "hours": [13, 14], "factor": 0.2}
+      "expected": {
+        "directive_type": "solar_reduction",
+        "hours": [
+          13,
+          14
+        ],
+        "factor": 0.2
+      }
     },
     {
       "note": "Hold half the pack in reserve for the evening peak, 7 PM to 10 PM.",
-      "expected": {"directive_type": "minimum_battery_reserve", "hours": [19, 20, 21], "minimum_energy_kwh": 100}
+      "expected": {
+        "directive_type": "minimum_battery_reserve",
+        "hours": [
+          19,
+          20,
+          21
+        ],
+        "minimum_energy_kwh": 100
+      }
     },
     {
       "note": "The inverter cannot take a charge overnight between 11 PM and 2 AM.",
-      "expected": {"directive_type": "no_charge_window", "hours": [0, 1, 23]},
+      "expected": {
+        "directive_type": "no_charge_window",
+        "hours": [
+          0,
+          1,
+          23
+        ]
+      },
       "why": "wrap-around window; hours must still be returned ascending"
     },
     {
       "note": "Please make sure the new intake batch gets the orientation email today.",
-      "expected": {"directive_type": "no_op", "hours": null}
+      "expected": {
+        "directive_type": "no_op",
+        "hours": null
+      }
+    },
+    {
+      "note": "Between 13:00 and 15:00, only one fifth of forecast PV generation will be usable.",
+      "expected": {
+        "directive_type": "solar_reduction",
+        "hours": [
+          13,
+          14
+        ],
+        "factor": 0.2
+      }
+    },
+    {
+      "note": "Rooftop solar loses eighty percent of its output from 1 PM until 3 PM.",
+      "expected": {
+        "directive_type": "solar_reduction",
+        "hours": [
+          13,
+          14
+        ],
+        "factor": 0.2
+      }
+    },
+    {
+      "note": "Use a solar multiplier of 0.2 during the 13-15 maintenance interval.",
+      "expected": {
+        "directive_type": "solar_reduction",
+        "hours": [
+          13,
+          14
+        ],
+        "factor": 0.2
+      }
+    },
+    {
+      "note": "For the two hours starting at 1 PM, solar availability is 20 percent of normal.",
+      "expected": {
+        "directive_type": "solar_reduction",
+        "hours": [
+          13,
+          14
+        ],
+        "factor": 0.2
+      }
+    },
+    {
+      "note": "PV output is derated by 80% from 13:00 up to, but not including, 15:00.",
+      "expected": {
+        "directive_type": "solar_reduction",
+        "hours": [
+          13,
+          14
+        ],
+        "factor": 0.2
+      }
+    },
+    {
+      "note": "At 1 PM panel cleaning starts; it ends at 3 PM. Only 20% of solar remains.",
+      "expected": {
+        "directive_type": "solar_reduction",
+        "hours": [
+          13,
+          14
+        ],
+        "factor": 0.2
+      }
+    },
+    {
+      "note": "Solar generation is down to one-fifth between one PM and three PM.",
+      "expected": {
+        "directive_type": "solar_reduction",
+        "hours": [
+          13,
+          14
+        ],
+        "factor": 0.2
+      }
+    },
+    {
+      "note": "From 1 PM until 3 PM the panels provide just 0.2 times their forecast energy.",
+      "expected": {
+        "directive_type": "solar_reduction",
+        "hours": [
+          13,
+          14
+        ],
+        "factor": 0.2
+      }
+    },
+    {
+      "note": "Keep only twenty percent of forecast solar for the 1 PM to 3 PM interval.",
+      "expected": {
+        "directive_type": "solar_reduction",
+        "hours": [
+          13,
+          14
+        ],
+        "factor": 0.2
+      }
+    },
+    {
+      "note": "Keep at least 100 kWh stored from 7 PM until 10 PM.",
+      "expected": {
+        "directive_type": "minimum_battery_reserve",
+        "hours": [
+          19,
+          20,
+          21
+        ],
+        "minimum_energy_kwh": 100
+      }
+    },
+    {
+      "note": "From 19:00 to 22:00, the battery must retain half its capacity.",
+      "expected": {
+        "directive_type": "minimum_battery_reserve",
+        "hours": [
+          19,
+          20,
+          21
+        ],
+        "minimum_energy_kwh": 100
+      }
+    },
+    {
+      "note": "During 7-10 PM, stored battery energy must not fall below 100 kWh.",
+      "expected": {
+        "directive_type": "minimum_battery_reserve",
+        "hours": [
+          19,
+          20,
+          21
+        ],
+        "minimum_energy_kwh": 100
+      }
+    },
+    {
+      "note": "Maintain a fifty-percent battery reserve between 19:00 and 22:00.",
+      "expected": {
+        "directive_type": "minimum_battery_reserve",
+        "hours": [
+          19,
+          20,
+          21
+        ],
+        "minimum_energy_kwh": 100
+      }
+    },
+    {
+      "note": "Preserve 100 kilowatt-hours in the pack from seven PM until ten PM.",
+      "expected": {
+        "directive_type": "minimum_battery_reserve",
+        "hours": [
+          19,
+          20,
+          21
+        ],
+        "minimum_energy_kwh": 100
+      }
+    },
+    {
+      "note": "For the three hours starting at 7 PM, hold a minimum of 100 kWh in storage.",
+      "expected": {
+        "directive_type": "minimum_battery_reserve",
+        "hours": [
+          19,
+          20,
+          21
+        ],
+        "minimum_energy_kwh": 100
+      }
+    },
+    {
+      "note": "At the end of each hour from 19 through 21, retain 100 kWh in the battery.",
+      "expected": {
+        "directive_type": "minimum_battery_reserve",
+        "hours": [
+          19,
+          20,
+          21
+        ],
+        "minimum_energy_kwh": 100
+      }
+    },
+    {
+      "note": "The battery reserve floor is 100 kWh between 7 PM and 10 PM.",
+      "expected": {
+        "directive_type": "minimum_battery_reserve",
+        "hours": [
+          19,
+          20,
+          21
+        ],
+        "minimum_energy_kwh": 100
+      }
+    },
+    {
+      "note": "Between 19:00 and 22:00 leave at least one-half of battery capacity unused.",
+      "expected": {
+        "directive_type": "minimum_battery_reserve",
+        "hours": [
+          19,
+          20,
+          21
+        ],
+        "minimum_energy_kwh": 100
+      }
+    },
+    {
+      "note": "Battery state of charge must stay at or above 50% from 7 PM until 10 PM.",
+      "expected": {
+        "directive_type": "minimum_battery_reserve",
+        "hours": [
+          19,
+          20,
+          21
+        ],
+        "minimum_energy_kwh": 100
+      }
+    },
+    {
+      "note": "From seven in the evening to ten in the evening, keep 100 kWh as reserve.",
+      "expected": {
+        "directive_type": "minimum_battery_reserve",
+        "hours": [
+          19,
+          20,
+          21
+        ],
+        "minimum_energy_kwh": 100
+      }
+    },
+    {
+      "note": "Battery charging is prohibited from 11 PM until 2 AM.",
+      "expected": {
+        "directive_type": "no_charge_window",
+        "hours": [
+          0,
+          1,
+          23
+        ]
+      }
+    },
+    {
+      "note": "Between 23:00 and 02:00, do not put energy into the battery.",
+      "expected": {
+        "directive_type": "no_charge_window",
+        "hours": [
+          0,
+          1,
+          23
+        ]
+      }
+    },
+    {
+      "note": "Block battery charging between eleven PM and two AM.",
+      "expected": {
+        "directive_type": "no_charge_window",
+        "hours": [
+          0,
+          1,
+          23
+        ]
+      }
+    },
+    {
+      "note": "The battery may not accept energy from 11 PM to 2 AM.",
+      "expected": {
+        "directive_type": "no_charge_window",
+        "hours": [
+          0,
+          1,
+          23
+        ]
+      }
+    },
+    {
+      "note": "Disable the charging function during 23:00-02:00.",
+      "expected": {
+        "directive_type": "no_charge_window",
+        "hours": [
+          0,
+          1,
+          23
+        ]
+      }
+    },
+    {
+      "note": "Charging must remain off from eleven at night until two in the morning.",
+      "expected": {
+        "directive_type": "no_charge_window",
+        "hours": [
+          0,
+          1,
+          23
+        ]
+      }
+    },
+    {
+      "note": "No battery top-ups are allowed from 23:00 until 02:00.",
+      "expected": {
+        "directive_type": "no_charge_window",
+        "hours": [
+          0,
+          1,
+          23
+        ]
+      }
+    },
+    {
+      "note": "From 11 PM until 2 AM, prevent the battery from charging.",
+      "expected": {
+        "directive_type": "no_charge_window",
+        "hours": [
+          0,
+          1,
+          23
+        ]
+      }
+    },
+    {
+      "note": "The charge controller is unavailable between 23:00 and 02:00.",
+      "expected": {
+        "directive_type": "no_charge_window",
+        "hours": [
+          0,
+          1,
+          23
+        ]
+      }
+    },
+    {
+      "note": "Suspend all battery charging from 11 PM through the window ending at 2 AM.",
+      "expected": {
+        "directive_type": "no_charge_window",
+        "hours": [
+          0,
+          1,
+          23
+        ]
+      }
+    },
+    {
+      "note": "Keep the battery charge input at zero between 11 PM and 2 AM.",
+      "expected": {
+        "directive_type": "no_charge_window",
+        "hours": [
+          0,
+          1,
+          23
+        ]
+      }
+    },
+    {
+      "note": "Do not discharge the battery from 6 PM until 9 PM.",
+      "expected": {
+        "directive_type": "no_discharge_window",
+        "hours": [
+          18,
+          19,
+          20
+        ]
+      }
+    },
+    {
+      "note": "Battery output is disabled between 18:00 and 21:00.",
+      "expected": {
+        "directive_type": "no_discharge_window",
+        "hours": [
+          18,
+          19,
+          20
+        ]
+      }
+    },
+    {
+      "note": "From six PM to nine PM, no energy may be drawn from the battery.",
+      "expected": {
+        "directive_type": "no_discharge_window",
+        "hours": [
+          18,
+          19,
+          20
+        ]
+      }
+    },
+    {
+      "note": "Block battery discharging during the 6-9 PM window.",
+      "expected": {
+        "directive_type": "no_discharge_window",
+        "hours": [
+          18,
+          19,
+          20
+        ]
+      }
+    },
+    {
+      "note": "The battery must not supply the campus between 18:00 and 21:00.",
+      "expected": {
+        "directive_type": "no_discharge_window",
+        "hours": [
+          18,
+          19,
+          20
+        ]
+      }
+    },
+    {
+      "note": "Keep battery discharge at zero from 6 PM to 9 PM.",
+      "expected": {
+        "directive_type": "no_discharge_window",
+        "hours": [
+          18,
+          19,
+          20
+        ]
+      }
+    },
+    {
+      "note": "Battery discharge is unavailable for the three hours starting at 6 PM.",
+      "expected": {
+        "directive_type": "no_discharge_window",
+        "hours": [
+          18,
+          19,
+          20
+        ]
+      }
+    },
+    {
+      "note": "Do not drain stored battery energy between six PM and nine PM.",
+      "expected": {
+        "directive_type": "no_discharge_window",
+        "hours": [
+          18,
+          19,
+          20
+        ]
+      }
+    },
+    {
+      "note": "Disable the discharge controller from 18:00 until 21:00.",
+      "expected": {
+        "directive_type": "no_discharge_window",
+        "hours": [
+          18,
+          19,
+          20
+        ]
+      }
+    },
+    {
+      "note": "Suspend battery-to-load output between 6 PM and 9 PM.",
+      "expected": {
+        "directive_type": "no_discharge_window",
+        "hours": [
+          18,
+          19,
+          20
+        ]
+      }
+    },
+    {
+      "note": "From 18:00 up to 21:00, the pack cannot release energy.",
+      "expected": {
+        "directive_type": "no_discharge_window",
+        "hours": [
+          18,
+          19,
+          20
+        ]
+      }
+    },
+    {
+      "note": "Prevent energy withdrawal from the battery from six in the evening to nine.",
+      "expected": {
+        "directive_type": "no_discharge_window",
+        "hours": [
+          18,
+          19,
+          20
+        ]
+      }
+    },
+    {
+      "note": "Cap grid purchases at 75 kWh per hour from 6 PM until 9 PM.",
+      "expected": {
+        "directive_type": "max_grid_window",
+        "hours": [
+          18,
+          19,
+          20
+        ],
+        "max_grid_kwh": 75
+      }
+    },
+    {
+      "note": "Between 18:00 and 21:00, grid import must not exceed 75 kWh each hour.",
+      "expected": {
+        "directive_type": "max_grid_window",
+        "hours": [
+          18,
+          19,
+          20
+        ],
+        "max_grid_kwh": 75
+      }
+    },
+    {
+      "note": "The hourly grid ceiling is seventy-five kWh from six PM to nine PM.",
+      "expected": {
+        "directive_type": "max_grid_window",
+        "hours": [
+          18,
+          19,
+          20
+        ],
+        "max_grid_kwh": 75
+      }
+    },
+    {
+      "note": "Draw at most 75 kWh from the grid per hour during the 6-9 PM window.",
+      "expected": {
+        "directive_type": "max_grid_window",
+        "hours": [
+          18,
+          19,
+          20
+        ],
+        "max_grid_kwh": 75
+      }
+    },
+    {
+      "note": "From 18:00 until 21:00, keep each hourly grid purchase below or equal to 75 kWh.",
+      "expected": {
+        "directive_type": "max_grid_window",
+        "hours": [
+          18,
+          19,
+          20
+        ],
+        "max_grid_kwh": 75
+      }
+    },
+    {
+      "note": "Limit utility imports to 75 kilowatt-hours each hour from 6 PM to 9 PM.",
+      "expected": {
+        "directive_type": "max_grid_window",
+        "hours": [
+          18,
+          19,
+          20
+        ],
+        "max_grid_kwh": 75
+      }
+    },
+    {
+      "note": "For the three hours beginning at 6 PM, impose a 75 kWh hourly grid cap.",
+      "expected": {
+        "directive_type": "max_grid_window",
+        "hours": [
+          18,
+          19,
+          20
+        ],
+        "max_grid_kwh": 75
+      }
+    },
+    {
+      "note": "The campus may buy no more than seventy-five kWh each hour between 18:00 and 21:00.",
+      "expected": {
+        "directive_type": "max_grid_window",
+        "hours": [
+          18,
+          19,
+          20
+        ],
+        "max_grid_kwh": 75
+      }
+    },
+    {
+      "note": "Grid energy is limited to 75 kWh per hour from six in the evening until nine.",
+      "expected": {
+        "directive_type": "max_grid_window",
+        "hours": [
+          18,
+          19,
+          20
+        ],
+        "max_grid_kwh": 75
+      }
+    },
+    {
+      "note": "Enforce an hourly import ceiling of 75 kWh between 6 PM and 9 PM.",
+      "expected": {
+        "directive_type": "max_grid_window",
+        "hours": [
+          18,
+          19,
+          20
+        ],
+        "max_grid_kwh": 75
+      }
+    },
+    {
+      "note": "Utility energy purchases must stay at or under 75 kWh each hour from 18:00 to 21:00.",
+      "expected": {
+        "directive_type": "max_grid_window",
+        "hours": [
+          18,
+          19,
+          20
+        ],
+        "max_grid_kwh": 75
+      }
+    },
+    {
+      "note": "Between six PM and nine PM, maximum grid supply per hour is 75 kWh.",
+      "expected": {
+        "directive_type": "max_grid_window",
+        "hours": [
+          18,
+          19,
+          20
+        ],
+        "max_grid_kwh": 75
+      }
+    },
+    {
+      "note": "The cafeteria menu changes tomorrow.",
+      "expected": {
+        "directive_type": "no_op",
+        "hours": null
+      }
+    },
+    {
+      "note": "The solar engineering club meets next month to discuss batteries.",
+      "expected": {
+        "directive_type": "no_op",
+        "hours": null
+      }
+    },
+    {
+      "note": "The library has updated its logo.",
+      "expected": {
+        "directive_type": "no_op",
+        "hours": null
+      }
+    },
+    {
+      "note": "GridWise presentation slides should use blue headings.",
+      "expected": {
+        "directive_type": "no_op",
+        "hours": null
+      }
+    },
+    {
+      "note": "Email the battery vendor the purchase receipt next week.",
+      "expected": {
+        "directive_type": "no_op",
+        "hours": null
+      }
+    },
+    {
+      "note": "The sports office moved next month's registration deadline.",
+      "expected": {
+        "directive_type": "no_op",
+        "hours": null
+      }
+    },
+    {
+      "note": "The energy seminar room has been renamed.",
+      "expected": {
+        "directive_type": "no_op",
+        "hours": null
+      }
+    },
+    {
+      "note": "Yesterday's solar maintenance report is now archived.",
+      "expected": {
+        "directive_type": "no_op",
+        "hours": null
+      }
+    },
+    {
+      "note": "Please proofread the campus electricity newsletter.",
+      "expected": {
+        "directive_type": "no_op",
+        "hours": null
+      }
+    },
+    {
+      "note": "Print the tariff research poster for next month's exhibition.",
+      "expected": {
+        "directive_type": "no_op",
+        "hours": null
+      }
+    },
+    {
+      "note": "Battery safety training registration opens next week.",
+      "expected": {
+        "directive_type": "no_op",
+        "hours": null
+      }
     }
   ]
 }

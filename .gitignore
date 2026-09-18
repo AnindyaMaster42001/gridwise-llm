@@ -1,7 +1,7 @@
 # secrets — never commit
 .env
 .env.*
-!.env.example
+.env.example
 *.key
 *.pem
 secrets/
@@ -19,3 +19,4 @@ venv/
 .DS_Store
 *.log
 harness/reports/
+deploy/wheels/*.whl

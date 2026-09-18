@@ -1,0 +1,15 @@
+{
+  "public_base_url": null,
+  "repository_url": "https://github.com/AnindyaMaster42001/gridwise-llm",
+  "image_reference": null,
+  "previous_image_reference": null,
+  "video_url": null,
+  "video_duration_seconds": null,
+  "verified_commit": null,
+  "primary_provider": "gemini",
+  "primary_model": "gemini-3.1-flash-lite",
+  "fallback_provider": "openai_compatible (OpenRouter)",
+  "fallback_model": "openrouter/free",
+  "external_sample_report": null,
+  "fresh_machine_reviewer": null
+}

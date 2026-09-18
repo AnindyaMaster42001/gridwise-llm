@@ -1,223 +1,308 @@
-# GridWise LLM — Smart Campus Energy Optimization
+# GridWise LLM
 
-**BUP CSE Fest 2026 · Online Preliminary · LLM-Assisted Operator Directive Interpretation**
+GridWise interprets campus operator notes and schedules grid, solar, and battery
+energy over 24 hours. A language model extracts directives; deterministic
+guardrails and an optimizer enforce them. The BUP CSE Fest 2026 preliminary
+requires a working public API, reproducible container, source, and a video of at
+most three minutes.
 
-An HTTP service that reads short natural-language campus operator notes with a
-language model, converts them into validated structured directives, and returns
-a cost-minimal 24-hour electricity schedule that provably obeys every one of
-them.
+**Current state:** Lane A is integrated. Lane D provides the judge, tests,
+deployment configuration, and documentation. Lane B/C production functions
+remain unfinished in this checkout; a successful `/health` or HTTP 200 does
+not establish that the solution meets the challenge. See
+[integration findings](deploy/INTEGRATION.md) and run the release checks below.
+No public deployment, registry digest, or submitted video is claimed yet.
 
-> **Status: scaffold.** The contracts, specs, optimizer formulation and the
-> four-person build plan are complete; the module bodies are implemented during
-> the round. Start at [`docs/team/`](docs/team/README.md).
->
-> **Judges:** sections marked 🔧 are filled in at submission time.
+## Architecture and ownership
 
----
-
-## How it works
-
-```
+```text
 POST /optimize-energy
-        │
-        ▼
-  operator notes ──► LLM interpretation ──► deterministic guardrails ──► linear program ──► replay verifier ──► JSON
-                     (mandatory, untrusted)   (repair / validate)         (exact optimum)    (reject invalid)
+  -> operator notes -> Gemini (OpenRouter model fallback)
+  -> untrusted structured interpretation
+  -> deterministic guardrails -> hourly constraints
+  -> SciPy/HiGHS linear program -> replay verifier
+  -> interpretation + 24-hour plan + recomputed totals
 ```
 
-Human language is never trusted as math. The model's job ends the moment it emits
-a structured guess; everything after the guardrails is deterministic, pure and
-unit-testable. If the model is slow, wrong or unavailable, the service degrades
-through a documented failure ladder and still returns a **valid** schedule.
+The required LLM step is `app/llm/interpreter.py:interpret_notes`; its output
+feeds `app/guardrails.py`, then `app/optimizer.py`. Using a model solely for
+`plan_summary` does not qualify. `app/verifier.py` checks the emitted plan;
+the local judge additionally audits it against the **case pack's expected
+directives**, independently of what the service says it interpreted.
 
-Full architecture: [`docs/01-architecture.md`](docs/01-architecture.md).
+| Owner | Files / responsibility |
+|---|---|
+| Anindya Kundu | `app/main.py`, `app/pipeline.py`: HTTP and orchestration |
+| Muhaiminul Islam Ninad | `app/llm/*`: actual LLM calls, interpretation, failover |
+| Kabya Mithun Saha | guardrails, optimizer, verifier |
+| Fayek Ahmed | `harness/*`, `tests/*`, Docker, deployment, README, demo |
 
-## API
+`app/schemas.py` and `app/config.py` are shared frozen contracts. Lane D does
+not implement production code in another member's files.
 
-### `GET /health`
+## Model configuration
+
+The selected primary is **Google Gemini `gemini-3.1-flash-lite`**. The fallback
+is **OpenRouter `openrouter/free`**, through the existing `openai_compatible`
+provider setting and `https://openrouter.ai/api/v1` base URL. These are configured
+in [.env.example](.env.example) and [the deployment template](deploy/runtime.env.example).
+Actual provider calls remain Lane B's integration responsibility.
+
+Google documents the [Gemini model identifier](https://ai.google.dev/gemini-api/docs/models).
+OpenRouter documents its [free model router](https://openrouter.ai/openrouter/free)
+and [compatible API base URL](https://openrouter.ai/developers).
+The free router can choose different underlying models, so it is not a pinned
+model and cannot promise repeatable output or availability. Verify both providers
+with your accounts and quota before submission; a free fallback still needs an
+OpenRouter key. Record the actual responding model in internal, redacted telemetry.
+
+Set keys only in `.env` or your host's secret settings. Never put them in source,
+commands shown in the video, Git, or the Docker image. `ALLOW_NO_LLM=0` is required
+for the submitted service. The example selects zero per-provider retries so an
+8-second primary attempt plus an 8-second fallback leaves room in the 22-second
+request budget; measure this after Lane B integrates.
+
+| Environment variable | Purpose |
+|---|---|
+| `LLM_PROVIDER` | Primary provider adapter, selected `gemini` |
+| `LLM_MODEL` | Primary model identifier |
+| `LLM_API_KEY` | Primary credential; required for submission |
+| `LLM_BASE_URL` | Optional primary compatible endpoint override |
+| `LLM_FALLBACK_PROVIDER` | Fallback adapter, selected `openai_compatible` |
+| `LLM_FALLBACK_MODEL` | Fallback model or router identifier |
+| `LLM_FALLBACK_BASE_URL` | OpenRouter compatible API base URL |
+| `LLM_FALLBACK_API_KEY` | Fallback credential |
+| `LLM_TIMEOUT_S` | Per-provider timeout in seconds |
+| `LLM_MAX_RETRIES` | Retry count before failover |
+| `LLM_TEMPERATURE` | Sampling temperature |
+| `LLM_CACHE_SIZE` | In-process interpretation cache capacity |
+| `REQUEST_BUDGET_S` | Pipeline request budget; official deadline is 30 seconds |
+| `PORT` | Container listening port; local CLI also supplies `--port` |
+| `LOG_LEVEL` | Runtime logging level |
+| `ALLOW_NO_LLM` | Offline development only; never enable for submission |
+| `RUN_LIVE_LLM` | Test-only opt-in to calls that consume model quota |
+
+## Local setup (Python 3.11)
+
+The repository must be private during the event and public after the submission
+deadline, following the official guide. Access during the private period requires
+your team's GitHub credentials.
+
+Windows PowerShell:
+
+```powershell
+git clone https://github.com/AnindyaMaster42001/gridwise-llm.git
+cd gridwise-llm
+py -3.11 -m venv .venv
+.\.venv\Scripts\python -m pip install -r requirements-dev.txt
+Copy-Item deploy/runtime.env.example .env
+# Edit .env locally: fill LLM_API_KEY and LLM_FALLBACK_API_KEY.
+.\.venv\Scripts\python -m uvicorn app.main:app --env-file .env --host 0.0.0.0 --port 8000
+```
+
+Linux/macOS:
 
 ```bash
-curl -sS http://localhost:8000/health
-# {"status":"ok"}
+git clone https://github.com/AnindyaMaster42001/gridwise-llm.git
+cd gridwise-llm
+python3.11 -m venv .venv
+. .venv/bin/activate
+python -m pip install -r requirements-dev.txt
+cp deploy/runtime.env.example .env
+# Edit .env locally: fill both credentials.
+python -m uvicorn app.main:app --env-file .env --host 0.0.0.0 --port 8000
 ```
 
-### `POST /optimize-energy`
+`--env-file .env` is intentional: the application configuration reads environment
+variables when imported; merely creating `.env` does not load it.
+
+In a second terminal in the repository, select the same virtual environment.
+On Windows use `.\.venv\Scripts\python` in place of `python`, and `curl.exe` in
+place of `curl` (PowerShell may alias `curl` to another command):
 
 ```bash
-curl -sS -X POST http://localhost:8000/optimize-energy \
-  -H 'Content-Type: application/json' \
-  -d @- <<'JSON'
-{
-  "scenario_id": "GRID-101",
-  "operator_notes": [
-    "Solar output will drop to about 20% from 1 PM to 3 PM.",
-    "The cafeteria menu changes tomorrow."
-  ],
-  "hours": [ {"hour": 0, "demand_kwh": 180, "solar_kwh": 0, "tariff_bdt_per_kwh": 7} ],
-  "battery": {
-    "capacity_kwh": 500, "initial_energy_kwh": 200, "minimum_energy_kwh": 50,
-    "max_charge_kwh_per_hour": 100, "max_discharge_kwh_per_hour": 100
-  }
-}
-JSON
+curl --fail-with-body http://localhost:8000/health
+python -m harness.export_sample
+curl --fail-with-body -X POST http://localhost:8000/optimize-energy -H "Content-Type: application/json" --data-binary @harness/reports/request.json --output harness/reports/response.json
+python -m json.tool harness/reports/response.json
 ```
 
-(`hours` must carry all 24 entries; trimmed here for readability.)
+Health returns `{"status":"ok"}`. The exporter writes a **complete 24-hour
+request**, plus `harness/reports/reference.json` from the organizer pack. For
+`SAMPLE-01`, the organizer reference has `total_grid_kwh=2692.5`,
+`total_cost_bdt=38365`, and `peak_grid_kwh=175`. These are reference values, not
+claims about the unfinished server. Equivalent optimal schedules may have a
+different peak/grid total; the objective and all constraints must pass replay.
 
-Returns `scenario_id`, one `directive_interpretation` entry per note in
-`note_index` order, a 24-entry `hourly_plan`, `total_grid_kwh`,
-`total_cost_bdt`, `peak_grid_kwh` and `plan_summary`. Full schema:
-[`docs/00-spec-digest.md`](docs/00-spec-digest.md) §3–§4.
+The current scaffold answers optimization requests through Lane A's fallback
+shims. A successful, directive-correct public-sample call requires Lane B/C to
+be merged; the judge identifies this rather than hiding it.
 
-Status codes: `200` success · `400` malformed or structurally invalid request ·
-`500` controlled internal error (never a stack trace, never a secret).
+## API contract
 
-## Quickstart (local, from a clean machine)
+`GET /health` returns HTTP 200 and a JSON object with `status="ok"`.
+`POST /optimize-energy` accepts `scenario_id`, 1–3 non-empty `operator_notes`,
+24 unique `hours` numbered 0–23, and `battery` parameters. Use the exported
+request above for a runnable full example.
+
+Responses contain `scenario_id`, one `directive_interpretation` per note in
+index order, `hourly_plan`, `total_grid_kwh`, `total_cost_bdt`, `peak_grid_kwh`,
+and `plan_summary`. Supported directive types are `solar_reduction`,
+`minimum_battery_reserve`, `no_charge_window`, `no_discharge_window`,
+`max_grid_window`, and `no_op`. See [the schema digest](docs/00-spec-digest.md)
+and the canonical PDFs.
+
+Malformed JSON/structural errors must return 400. Semantic errors may return
+422. Internal errors must be controlled, with no secrets or stack traces in
+responses. Windows use an inclusive start and exclusive end, solar factors are
+the fraction **remaining**, numeric tolerance is **absolute 0.01**, and the
+battery must end at its initial energy.
+
+## Tests and scoring
 
 ```bash
-git clone <REPO_URL> && cd gridwise-llm
-
-python3 -m venv .venv && source .venv/bin/activate
-pip install -r requirements-dev.txt
-
-cp .env.example .env          # then set LLM_API_KEY (see "Configuration")
-
-uvicorn app.main:app --host 0.0.0.0 --port 8000
-
-# in another terminal
-curl -sS http://localhost:8000/health
-bash scripts/smoke.sh http://localhost:8000
+python -m pytest -q
+python -m pytest --integration -q
+python -m harness.judge --base-url http://localhost:8000 --repeat 3 --output harness/reports/local.json
+python -m harness.judge --base-url http://localhost:8000 --json
+python -m harness.stress_cases
+python -m harness.judge --base-url http://localhost:8000 --cases harness/reports/stress_cases.json
+python -m harness.preflight --history
+python -m harness.provider_probe
 ```
 
-## Testing against the public sample pack
+Default tests are offline. An exact function-body `NotImplementedError` stub
+causes a visibly explained skip in dependent tests; `--integration` turns those
+into failures. This prevents a green scaffold run from being called a completed
+release. Public ASGI tests inject ground-truth **interpreter fixtures** only;
+they exercise the actual solver and verifier once implemented. They do not prove
+that a live model understands notes.
 
-The ten public cases ship in `tests/data/public_samples.json`.
+`harness.provider_probe` sends one synthetic note directly to each configured
+provider and reports status, model, latency, and semantic checks without raw
+credentials or provider error bodies. It consumes quota and establishes only
+provider connectivity/basic JSON behavior, not production integration.
+
+For live semantic evaluation, after implementing Lane B/C and configuring keys:
 
 ```bash
-python3 -m pytest -q                                          # offline unit tests
-python3 -m harness.judge --base-url http://localhost:8000     # score out of 100
+python -m dotenv -f .env run -- python -m pytest tests/test_paraphrase.py -q
 ```
 
-`harness/judge.py` replays every returned schedule against the pack's expected
-directives — the same thing the organizers' harness does — and prints a
-per-category score in the official seven categories.
+Set `RUN_LIVE_LLM=1` and `ALLOW_NO_LLM=0` in your local `.env` for that command,
+then remove the test-only flag. The bank includes 12 phrasings for each of the
+six types (72 total), with midnight wrap, percentage reserve, remainder/reduction,
+and energy-related distractors. Live tests reject directives labeled as fallback.
 
-Expected result: all 10 cases valid, interpretation matching the expected
-directives, and `total_cost_bdt` equal to the reference cost. The LP formulation
-in [`docs/03-optimizer-formulation.md`](docs/03-optimizer-formulation.md)
-reproduces the organizer's reference cost on all ten with a difference of
-`+0.00`; the verified spike is at `docs/reference/lp_spike.py`.
+Passing a release means all 10 public cases pass schema, interpretation, expected
+directive replay, totals, and optimum-cost checks; all shared-verifier checks pass;
+malformed input returns 400; and repeated real-model p95 latency is at most
+5 seconds for full latency marks. A fast stub or warmed cache does not establish
+cold-model performance.
 
-## Configuration
+The judge prints all seven rubric categories. It labels the score as a local
+estimate: paraphrase points, startup timing, provider/secret safety, deployment,
+and fresh-machine reproduction require separate evidence. Artifact categories
+are `UNASSESSED`, never free points. It exits nonzero on failed integration and
+supports JSON reports for CI. Optimization averages over **every** case, with
+invalid cases contributing zero; if both costs are within 0.01 of zero, quality
+is one. This follows Guide §08, correcting the older team notes that incorrectly
+said to average only over valid cases.
 
-Every value comes from an environment variable. **No secret is committed**;
-`.env` is git-ignored and `.env.example` documents the names only.
+The manually triggered GitHub Actions `release-check` workflow runs
+`pytest --integration` before building and checking the container. It is
+expected to fail until the documented integration blockers are fixed.
 
-| Variable | Required | Purpose |
-|---|---|---|
-| `LLM_PROVIDER` | yes | `openai` \| `groq` \| `gemini` \| `openai_compatible` |
-| `LLM_MODEL` | yes | model identifier, e.g. `gpt-4o-mini` |
-| `LLM_API_KEY` | yes | credential for the primary provider |
-| `LLM_BASE_URL` | no | only for `openai_compatible` / self-hosted endpoints |
-| `LLM_FALLBACK_PROVIDER` | no | second provider, used when the primary fails |
-| `LLM_FALLBACK_MODEL` | no | model for the fallback provider |
-| `LLM_FALLBACK_API_KEY` | no | credential for the fallback provider |
-| `LLM_TIMEOUT_S` | no | per-call timeout, default `8` |
-| `LLM_MAX_RETRIES` | no | retries before failover, default `1` |
-| `LLM_TEMPERATURE` | no | default `0` — determinism matters here |
-| `LLM_CACHE_SIZE` | no | interpretation cache entries, default `512` |
-| `REQUEST_BUDGET_S` | no | whole-request wall, default `22` (judge fails at 30) |
-| `PORT` | no | listen port, default `8000` |
-| `LOG_LEVEL` | no | default `INFO` |
-| `ALLOW_NO_LLM` | no | offline development only; **must be unset in production** |
+## Docker fallback
 
-**Model / provider used for submission:** 🔧 *`<model>` via `<provider>`*
-
-**Where the LLM sits:** `app/llm/interpreter.py` sends all operator notes in one
-JSON-mode completion and receives one structured directive per note. That output
-is the only source of directives; `app/guardrails.py` then validates it and
-`app/optimizer.py` consumes the result. The model is not used for cosmetic text.
-
-## Docker
+Docker Desktop must use Linux containers on Windows. Build and run locally:
 
 ```bash
-docker pull 🔧<registry>/gridwise-llm:🔧<tag>
-docker run --rm -p 8000:8000 \
-  -e LLM_PROVIDER=openai -e LLM_MODEL=gpt-4o-mini -e LLM_API_KEY=<your-key> \
-  🔧<registry>/gridwise-llm:🔧<tag>
-
-curl -sS http://localhost:8000/health   # {"status":"ok"}
+docker build -t gridwise-llm:lane-d .
+python -m harness.container_check --image gridwise-llm:lane-d
+docker run --detach --name gridwise-local --read-only --tmpfs /tmp:rw,noexec,nosuid,size=64m --cap-drop ALL --security-opt no-new-privileges:true -p 8000:8000 --env-file .env gridwise-llm:lane-d
+curl --fail-with-body http://localhost:8000/health
+docker inspect --format='{{.State.Health.Status}}' gridwise-local
+python -m harness.judge --base-url http://localhost:8000 --repeat 3
+docker stop gridwise-local
+docker rm gridwise-local
 ```
 
-Binds `0.0.0.0:8000`, exposes `8000`, carries a `HEALTHCHECK`, and contains **no
-baked-in credentials** — every secret arrives at runtime via `-e`.
+Stop the local Uvicorn server first if it uses port 8000. Alternatively,
+`docker compose up --build -d` runs the same image with a read-only filesystem,
+limited capabilities, and restart policy. `docker compose down` stops it.
+The image runs as UID 10001, binds `0.0.0.0`, exposes port 8000, checks the health
+JSON, and uses `exec` so shutdown reaches Uvicorn. The Docker build context is
+allowlisted to application code, requirements, and optional dependency wheels;
+credentials, Git, PDFs, tests, and local reports are excluded.
 
-Build locally instead: `make docker-build && make docker-run`.
+If Docker's network cannot download dependencies reliably, prepare Linux x86-64
+wheels through the host connection, then run the same build again:
 
-## Deployed endpoint
-
-🔧 `https://<base-url>` — `GET /health` and `POST /optimize-energy`, no auth.
-
-## Repository layout
-
-```
-app/
-  main.py          FastAPI endpoints, status codes, controlled errors
-  pipeline.py      orchestration and the request time budget
-  schemas.py       frozen request/response/internal contracts
-  config.py        environment-driven settings, no secrets in code
-  llm/             prompts, provider client with failover, interpreter, regex backup
-  guardrails.py    untrusted model output -> legal Directive + ConstraintSet
-  optimizer.py     linear program (SciPy HiGHS) + safe baseline plan
-  verifier.py      independent replay, the same checks the judge runs
-harness/           local replica of the organizers' judge, paraphrase bank
-tests/             offline unit + sample tests, public sample pack
-docs/              spec digest, architecture, contracts, per-member build plan
-scripts/           smoke test, sample runner
+```bash
+python -m pip download -r requirements.txt uvloop==0.22.1 --dest deploy/wheels --platform manylinux2014_x86_64 --python-version 311 --implementation cp --abi cp311 --only-binary=:all:
+docker build -t gridwise-llm:lane-d .
 ```
 
-## Dependencies & credits
+BuildKit mounts this ignored wheel directory only during installation; wheels
+are not copied into image layers. An empty wheel directory uses normal PyPI
+installation. A populated directory requires a complete wheel set and installs
+offline, failing clearly if anything is missing. The command above targets
+Linux AMD64; download matching wheels for another architecture. Base-image
+availability is still required.
 
-- [FastAPI](https://fastapi.tiangolo.com/) + [Uvicorn](https://www.uvicorn.org/) — HTTP layer
-- [Pydantic v2](https://docs.pydantic.dev/) — schema validation
-- [SciPy](https://scipy.org/) `linprog` with the [HiGHS](https://highs.dev/) solver — the LP
-- [NumPy](https://numpy.org/) — constraint matrices
-- [httpx](https://www.python-httpx.org/) — async provider client
-- 🔧 LLM provider: *`<provider>`*
-- AI coding assistants (Claude Code) were used during development, as permitted
-  by the rulebook. Architecture, formulation and logic are the team's own.
+**Published pull reference: pending registry access.** `gridwise-llm:lane-d` is a
+local tag, not a published image. Local container checks passed (health ready in
+1.781 seconds, non-root/read-only execution, optimization response schema,
+healthy Docker probe, and clean shutdown); the sample plan still fails ground
+truth because production modules are unfinished. To publish, choose your registry namespace,
+tag the verified image with the commit ID, push it, and record the resulting
+`registry/name@sha256:...` reference in `deploy/submission.json`. The publisher
+workflow is in [the deployment runbook](deploy/RUNBOOK.md).
 
-## Known limitations
+After the actual digest is recorded, the organizer's exact commands are:
 
-- The battery is modelled as lossless, matching the Problem Statement, which has
-  no round-trip efficiency term. A real installation would need a MILP.
-- Interpretation quality is bounded by the chosen model. If every configured
-  provider is unreachable, a regex fallback keeps the service answering; it is
-  marked `source="fallback"` in the pipeline and is less accurate on unusual
-  paraphrases.
-- Conflicting hard directives are degraded through a documented ladder rather
-  than reported as an error, since organizer scoring scenarios are guaranteed
-  feasible.
-- The interpretation cache is in-process; it does not survive a restart and is
-  not shared across workers.
+```bash
+docker pull "$GRIDWISE_IMAGE"
+docker run --rm --env-file .env -p 8000:8000 "$GRIDWISE_IMAGE"
+```
 
-## Secret handling
+Set `GRIDWISE_IMAGE` to the submitted immutable reference. This variable is a
+deployment command input, not application configuration. A clean-machine pull
+test and an external network check remain required before these instructions
+can be claimed verified against a registry.
 
-- `.env` and `*.key` are git-ignored; only `.env.example` (names, no values) is
-  committed.
-- No credential is baked into the Docker image — verified with
-  `docker history --no-trunc <image>`.
-- Error responses carry `{"error": "..."}` only; tracebacks stay server-side.
-- Provider errors are logged as a status code and a truncated body, never with
-  the request headers.
+## Deployment and video
 
-## Team
+Follow [deploy/RUNBOOK.md](deploy/RUNBOOK.md); complete
+[deploy/submission.example.json](deploy/submission.example.json) as
+`deploy/submission.json`. Keep an earlier verified image available for rollback.
+No hosting target or registry credentials have been supplied yet.
 
-| Member | Lane | Responsible for |
-|---|---|---|
-| **Anindya Kundu** | A | API surface, pipeline orchestration, integration |
-| **Muhaiminul Islam Ninad** | B | LLM operator-note interpretation, prompts, provider failover |
-| **Kabya Mithun Saha** | C | Deterministic guardrails, linear-program optimizer, replay verifier |
-| **Fayek Ahmed** | D | Judge harness, tests, deployment, Docker image, documentation |
+[The 2:50 demo script](deploy/VIDEO_SCRIPT.md) prepares the required tie-break
+video. Record actual successful runtime evidence after integration; the script
+is not a recorded or submitted video. The video is the **first** tie-breaker,
+followed by application, interpretation, optimization, schema, reliability and
+deployment, documentation, and exceptional engineering.
 
-Individual build plans: [`docs/team/`](docs/team/README.md).
+## Dependencies, credits, and limits
+
+Python 3.11; FastAPI 0.115.6; Uvicorn 0.34.0; Pydantic 2.10.4; SciPy 1.15.0 with
+HiGHS; NumPy 2.2.1; httpx 0.28.1; python-dotenv 1.0.1; pytest 8.3.4 and
+pytest-asyncio 0.25.0. Direct dependencies are pinned in the requirements files.
+Provider APIs: Google Gemini and OpenRouter. AI coding assistance: Claude Code
+for the original scaffold and OpenAI Codex for Lane D implementation and review.
+The public sample pack and challenge PDFs are supplied by BUP CSE Fest 2026.
+
+The battery is lossless because the challenge specifies no efficiency term.
+Overlapping solar factors multiply per the team's documented convention;
+multiple grid caps use the minimum and reserves the maximum. These stress cases
+are team-authored robustness checks, not knowledge of hidden tests. No new
+directive types or battery rules are invented.
+
+Provider failures, quota, free-router variability, and cold starts can affect
+latency and interpretation. In-process caches are not shared across workers.
+Fallback shims and relaxed constraints can return plausible but incorrect plans;
+the judge treats these as failures under expected directives. A pattern-based
+secret scan is only one check: inspect runtime logs and Docker metadata locally
+without publishing credentials. Never echo raw provider exceptions or headers.
