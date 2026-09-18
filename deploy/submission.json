@@ -7,9 +7,9 @@
   "video_duration_seconds": null,
   "verified_commit": "88d75fa0de1290e4deb7b82dea2b06248d995132",
   "primary_provider": "gemini",
-  "primary_model": "gemini-2.5-flash",
+  "primary_model": "gemini-3.5-flash",
   "fallback_provider": "groq",
-  "fallback_model": "llama-3.3-70b-versatile",
+  "fallback_model": "gemini-3-flash-preview",
   "external_sample_report": null,
   "fresh_machine_reviewer": null,
   "_verified_locally": {
@@ -28,14 +28,15 @@
     "video_url": "script at deploy/VIDEO_SCRIPT.md, recording guide at deploy/VIDEO_GUIDE.md; not recorded.",
     "repo_visibility": "repository is PRIVATE, which is correct during the event. It must be made PUBLIC after the submission deadline or it cannot be evaluated.",
     "vercel_deployment_protection": "RESOLVED: the project shipped with Vercel Authentication on, which answered anonymous callers with a 302 to vercel.com/sso-api. Disabled; verified off via the API. Re-check after any project setting change.",
-    "fallback_is_not_independent": "LLM_API_KEY and LLM_FALLBACK_API_KEY in the supplied env file are the SAME VALUE. Pointing the fallback at a different Gemini model does buy a separate per-model daily allowance, which is why it is kept, but it is one key on one project: a revocation, a billing stop or a ban takes both paths down together.",
-    "gemini_3_unusable_output": "SUSPECTED, NOT CONFIRMED: gemini-3-flash-preview returned 'no JSON object found in the response' through our client on its one successful call. A trivial probe on that model showed thoughtsTokenCount=63, and the client sends maxOutputTokens=900 with no thinking configuration - Gemini 3 draws thinking from the same output budget, so a long prompt plus 8 few-shots can exhaust it before any JSON is emitted. The confirming diagnostic was blocked by quota. Re-run it before relying on this fallback."
+    "fallback_is_not_independent": "LLM_API_KEY and LLM_FALLBACK_API_KEY in the supplied env file are the SAME VALUE. Pointing the fallback at a different Gemini model does buy a separate per-model daily allowance, which is why it is kept, but it is one key on one project: a revocation, a billing stop or a ban takes both paths down together."
   },
   "hosting_platform": "vercel (framework preset: fastapi, app/main.py at root)",
   "_fixed_in_release_prep": {
     "dockerfile_model": "the image defaulted to gemini-3.1-flash-lite, which the README's own measurement records as failing the end-exclusive hour rule ([13,14,15] for 1 PM-3 PM). Corrected to the measured gemini-2.5-flash.",
     "fallback_vendor": "four different fallbacks were configured across Dockerfile, .env.example, runtime.env.example and this manifest. Standardised on a DIFFERENT vendor (groq) so the fallback fails independently of the primary; no fallback is baked into the image.",
-    "vercel_routing": "the first deployments 404'd every route. Vercel detects this project as framework 'fastapi' and serves app/main.py at the root; the api/index.py adapter was never used, and the rewrite in vercel.json replaced the received path so /health arrived as /api/index/health. The functions glob named api/index.py too, so maxDuration:60 never applied and the function ran on the 10s Hobby default against a 6.58s p95."
+    "vercel_routing": "the first deployments 404'd every route. Vercel detects this project as framework 'fastapi' and serves app/main.py at the root; the api/index.py adapter was never used, and the rewrite in vercel.json replaced the received path so /health arrived as /api/index/health. The functions glob named api/index.py too, so maxDuration:60 never applied and the function ran on the 10s Hobby default against a 6.58s p95.",
+    "model_availability": "gemini-2.5-flash returns 404 'no longer available to new users' on freshly-created keys, so the configured primary could never have worked on the submitted key. Re-measured and switched to gemini-3.5-flash, which answers every trap note correctly.",
+    "gemini3_thinking_budget": "CONFIRMED and fixed. Gemini 3 draws thinking from maxOutputTokens; gemini-3.5-flash took 19.0s with 377 thinking tokens on a closed-form extraction, and gemini-3-flash-preview returned no text at all ('no JSON object found'). Setting thinkingConfig.thinkingLevel='low' for gemini-3+ cuts it to 7.1s with every trap still correct."
   },
   "_live_verification": {
     "url": "https://gridwise-llm-anindya3.vercel.app",

@@ -1,9 +1,14 @@
 FROM python:3.11-slim@sha256:9534e5a8e315485d4061ed659af0fd78a284c015f9b73661b41d6bab25604534
 
-# Only the measured primary is baked in. gemini-2.5-flash was selected against
-# the ten public cases; both -flash-lite variants returned [13, 14, 15] for a
-# 1 PM-3 PM window and so fail the end-exclusive rule outright, which is why
-# this image must not default to one.
+# Only the measured primary is baked in.
+#
+# gemini-2.5-flash was the original pick, but Google now returns 404 for it on
+# newly-created API keys: "no longer available to new users". Re-measured on
+# 2026-09-18 against a fresh key, gemini-3.5-flash answers all three trap notes
+# correctly (80% reduction -> factor 0.2, 11 AM-2 PM -> [11,12,13], 50% of
+# capacity -> 100 kWh, distractor -> no_op). The -flash-lite variants remain
+# excluded: they returned [13, 14, 15] for a 1 PM-3 PM window and fail the
+# end-exclusive rule outright.
 #
 # No fallback is baked in on purpose. A fallback is only insurance if it fails
 # independently, so it belongs to a DIFFERENT vendor with its own quota and its
@@ -13,7 +18,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PORT=8000 \
     LLM_PROVIDER=gemini \
-    LLM_MODEL=gemini-2.5-flash
+    LLM_MODEL=gemini-3.5-flash
 
 WORKDIR /app
 

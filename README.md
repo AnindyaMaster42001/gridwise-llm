@@ -42,17 +42,29 @@ not implement production code in another member's files.
 
 ## Model configuration
 
-The selected primary is **Google Gemini `gemini-2.5-flash`**. The fallback
+The selected primary is **Google Gemini `gemini-3.5-flash`**. The fallback
 is **OpenRouter `openrouter/free`**, through the existing `openai_compatible`
 provider setting and `https://openrouter.ai/api/v1` base URL. These are configured
 in [.env.example](.env.example) and [the deployment template](deploy/runtime.env.example).
 Actual provider calls remain Lane B's integration responsibility.
 
-`gemini-2.5-flash` was selected by measurement against the ten public cases, not by
-default: it answered 4/4 probes correctly at a 2.86 s median, where both `-flash-lite`
-variants returned `[13, 14, 15]` for a 1 PM-3 PM window and so failed the
-end-exclusive rule outright, and the newer `gemini-3.x-flash` models were either
-shedding load with HTTP 503 or running past 15 s.
+`gemini-3.5-flash` was selected by measurement, not by default.
+
+`gemini-2.5-flash` was the original pick and measured well, but Google now
+returns **404 "no longer available to new users"** for it on freshly-created API
+keys — so it cannot be the submitted default. Re-measured on 2026-09-18 against
+a new key: `gemini-flash-latest` and `gemini-3.6-flash` were both shedding load
+with HTTP 503, and `gemini-3.5-flash` answered every trap note correctly (80%
+reduction -> factor 0.2; 11 AM-2 PM -> `[11,12,13]`; 50% of capacity -> 100 kWh;
+distractor -> `no_op`). The `-flash-lite` variants remain excluded: they returned
+`[13, 14, 15]` for a 1 PM-3 PM window and fail the end-exclusive rule outright.
+
+Gemini 3 models are thinking models, and their thinking is drawn from the same
+`maxOutputTokens` budget as the answer. Left alone, `gemini-3.5-flash` took
+**19.0 s** and spent 377 tokens reasoning about a closed-form extraction task;
+with `thinkingConfig.thinkingLevel = "low"` it takes **7.1 s** and is still
+correct on every trap. The client applies that only to `gemini-3+`, because
+Gemini 2.5 uses a different field and rejects this one.
 
 > **Provider quota is a release blocker, not a detail.** A free-tier Gemini key is
 > capped at **20 requests per day, per model** (`quotaId
