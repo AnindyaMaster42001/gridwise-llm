@@ -8,7 +8,7 @@
   "verified_commit": "5d70c83e83a00021c5e51016257e8677c8894890",
   "primary_provider": "gemini",
   "primary_model": "gemini-3.5-flash",
-  "fallback_provider": "groq",
+  "fallback_provider": "gemini",
   "fallback_model": "gemini-3-flash-preview",
   "external_sample_report": null,
   "fresh_machine_reviewer": null,
