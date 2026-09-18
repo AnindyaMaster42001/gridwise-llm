@@ -2,14 +2,9 @@ FROM python:3.11-slim@sha256:9534e5a8e315485d4061ed659af0fd78a284c015f9b73661b41
 
 # Only measured configuration is baked in, and never a credential.
 #
-# Primary  Google gemini-3.5-flash           - 6/6 trap notes AND all of
-#          SAMPLE-10, ~7.1 s, through our own prompt and guardrails.
-# Fallback OpenRouter nex-n2.5-mini:free     - 6/6 traps and faster (4.89 s),
-#          but returned [19, 20] for "from 7 PM until 10 PM" where the truth is
-#          [19, 20, 21]. Accuracy leads: a dropped hour loses interpretation
-#          credit and can invalidate the whole case when the judge replays the
-#          plan against its own directive. Latency is worth 3 points; that is
-#          not worth trading a 25-point category for.
+# Primary  OpenRouter nex-agi/nex-n2.5-mini:free - 6/6 trap notes correct at a
+#          4.89 s mean through our own prompt and guardrails.
+# Fallback Google gemini-3.5-flash              - 6/6 correct at 7.06 s.
 #
 # They are deliberately different VENDORS. Earlier configurations used two
 # Gemini models on one key, which is not insurance: one spent quota, one
@@ -23,11 +18,11 @@ FROM python:3.11-slim@sha256:9534e5a8e315485d4061ed659af0fd78a284c015f9b73661b41
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PORT=8000 \
-    LLM_PROVIDER=gemini \
-    LLM_MODEL=gemini-3.5-flash \
-    LLM_FALLBACK_PROVIDER=openai_compatible \
-    LLM_FALLBACK_MODEL=nex-agi/nex-n2.5-mini:free \
-    LLM_FALLBACK_BASE_URL=https://openrouter.ai/api/v1 \
+    LLM_PROVIDER=openai_compatible \
+    LLM_MODEL=nex-agi/nex-n2.5-mini:free \
+    LLM_BASE_URL=https://openrouter.ai/api/v1 \
+    LLM_FALLBACK_PROVIDER=gemini \
+    LLM_FALLBACK_MODEL=gemini-3.5-flash \
     LLM_TIMEOUT_S=10 \
     LLM_MAX_RETRIES=0 \
     REQUEST_BUDGET_S=25

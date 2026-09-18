@@ -6,10 +6,10 @@
   "video_url": null,
   "video_duration_seconds": null,
   "verified_commit": "01fba6eeb055a0bc4a3252bc38c08371c6bbcd54",
-  "primary_provider": "gemini",
-  "primary_model": "gemini-3.5-flash",
-  "fallback_provider": "openai_compatible (OpenRouter)",
-  "fallback_model": "nex-agi/nex-n2.5-mini:free",
+  "primary_provider": "openai_compatible (OpenRouter)",
+  "primary_model": "nex-agi/nex-n2.5-mini:free",
+  "fallback_provider": "gemini",
+  "fallback_model": "gemini-3.5-flash",
   "external_sample_report": null,
   "fresh_machine_reviewer": null,
   "_verified_locally": {
@@ -65,6 +65,7 @@
     "deepseek/deepseek-v4-flash-0731:free": "6/6 correct but 16.45s mean - past the per-call timeout, rejected on latency",
     "gemini-2.5-flash": "404 'no longer available to new users' on freshly-created keys",
     "gemini-flash-latest / gemini-3.6-flash": "HTTP 503 load-shedding",
-    "-flash-lite variants": "returned [13, 14, 15] for a 1 PM-3 PM window; fail the end-exclusive rule"
+    "-flash-lite variants": "returned [13, 14, 15] for a 1 PM-3 PM window; fail the end-exclusive rule",
+    "live_judge_comparison": "Measured against the live deployment, 10 public cases each: OpenRouter-primary scored 72.83/100 with 10/10 valid and p95 3.26s; Gemini-primary scored 67.00/100 with 9/10 valid and p95 9.57s, returning BOTH notes of SAMPLE-08 as no_op. Gemini's latency sits at the 10s per-call timeout under Vercel, which the local single-case test did not expose. OpenRouter leads; Gemini is the fallback."
   }
 }

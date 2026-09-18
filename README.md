@@ -46,17 +46,8 @@ Two providers from **two different vendors**, both chosen by measurement.
 
 | Role | Provider | Model | Traps | Mean latency |
 |---|---|---|---|---|
-| Primary | Google (`gemini`) | `gemini-3.5-flash` | **6/6** + SAMPLE-10 | 7.06 s |
-| Fallback | OpenRouter (`openai_compatible`) | `nex-agi/nex-n2.5-mini:free` | 6/6 traps | 4.89 s |
-
-The faster model is the *fallback*, not the primary. `nex-n2.5-mini` passed all
-six traps but returned `[19, 20]` for "from 7 PM until 10 PM" on public
-SAMPLE-10, where the truth is `[19, 20, 21]` — the prompt states that exact
-pattern explicitly, so this is a model limit rather than a missing instruction.
-A dropped hour costs interpretation credit *and* can invalidate the whole case
-when the judge replays the plan against its own directive, which also forfeits
-the application and optimization credit for it. Latency is worth 3 points; that
-is not a trade worth making against a 25-point category.
+| Primary | OpenRouter (`openai_compatible`) | `nex-agi/nex-n2.5-mini:free` | **6/6** | **4.89 s** |
+| Fallback | Google (`gemini`) | `gemini-3.5-flash` | **6/6** | 7.06 s |
 
 Every candidate was run through this repository's own prompt, client and
 guardrails against six trap notes covering all five directive types plus a
