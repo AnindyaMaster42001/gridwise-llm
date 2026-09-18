@@ -1,9 +1,9 @@
 """
 FROZEN CONTRACT — do not change during the round without telling the whole team.
 
-Every module in this repo talks through the types in this file. Member A owns the
-HTTP layer, Member B owns interpretation, Member C owns guardrails + optimizer,
-Member D owns testing/deploy — but all four import from here.
+Every module in this repo talks through the types in this file. Anindya owns the
+HTTP layer, Ninad owns interpretation, Kabya owns guardrails + optimizer,
+Fayek owns testing/deploy — but all four import from here.
 
 Field names and value shapes mirror the Problem Statement exactly. If this file
 and the Problem Statement ever disagree, the Problem Statement wins and this file

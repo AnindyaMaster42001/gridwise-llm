@@ -1,5 +1,5 @@
 """
-Deterministic backup interpreter.  OWNER: Member B.
+Deterministic backup interpreter.  OWNER: Ninad — Lane B.
 
 Used ONLY when every LLM provider has failed. Its job is to keep the service
 answering with something plausible instead of 500-ing, not to replace the model.
@@ -29,4 +29,4 @@ def rule_based_interpret(notes: List[str], battery: BatteryInput) -> List[Dict[s
         "keep at least N kWh" -> reserve, "must not exceed N kWh" -> grid cap;
       * anything unmatched -> no_op.
     """
-    raise NotImplementedError("TODO(Member B)")
+    raise NotImplementedError("TODO(Ninad)")

@@ -1,5 +1,5 @@
 """
-Deterministic validation of untrusted model output.  OWNER: Member C.
+Deterministic validation of untrusted model output.  OWNER: Kabya — Lane C.
 
 The Problem Statement (§08) treats LLM output as untrusted structured data.
 Nothing here may call a model; everything here must be pure and unit-testable.
@@ -51,17 +51,17 @@ def validate_interpretations(
 
     Never raises: a completely unusable `raw` yields all-no_op directives.
     """
-    raise NotImplementedError("TODO(Member C): see docs/team/MEMBER-C-guardrails-optimizer.md")
+    raise NotImplementedError("TODO(Kabya): see docs/team/KABYA-lane-c-guardrails-optimizer.md")
 
 
 def normalise_hours(value: Any) -> List[int]:
     """Coerce to unique ints in 0..23, ascending. Returns [] if nothing survives."""
-    raise NotImplementedError("TODO(Member C)")
+    raise NotImplementedError("TODO(Kabya)")
 
 
 def normalise_factor(value: Any, explanation: str = "") -> Optional[float]:
     """Coerce to a usable-fraction in [0, 1], or None if impossible."""
-    raise NotImplementedError("TODO(Member C)")
+    raise NotImplementedError("TODO(Kabya)")
 
 
 def build_constraint_set(
@@ -78,4 +78,4 @@ def build_constraint_set(
       no_discharge_window      discharge_blocked[h] = True
       max_grid_window          max_grid[h] = min(existing cap, directive value)
     """
-    raise NotImplementedError("TODO(Member C)")
+    raise NotImplementedError("TODO(Kabya)")

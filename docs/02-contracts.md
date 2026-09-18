@@ -6,17 +6,17 @@ need a change there, say so in the team channel and change it once, together.
 
 ## File ownership (no two people edit the same file)
 
-| Files | Owner |
-|---|---|
-| `app/main.py`, `app/pipeline.py` | **A** |
-| `app/llm/*` | **B** |
-| `app/guardrails.py`, `app/optimizer.py`, `app/verifier.py` | **C** |
-| `harness/*`, `tests/*`, `Dockerfile`, `README.md`, deploy config | **D** |
-| `app/schemas.py`, `app/config.py`, `docs/*` | shared, frozen, announce changes |
+| Files | Owner | Lane |
+|---|---|---|
+| `app/main.py`, `app/pipeline.py` | **Anindya Kundu** | A |
+| `app/llm/*` | **Muhaiminul Islam Ninad** | B |
+| `app/guardrails.py`, `app/optimizer.py`, `app/verifier.py` | **Kabya Mithun Saha** | C |
+| `harness/*`, `tests/*`, `Dockerfile`, `README.md`, deploy config | **Fayek Ahmed** | D |
+| `app/schemas.py`, `app/config.py`, `docs/*` | shared, frozen, announce changes | — |
 
 ## The four seams
 
-### B → C  (raw interpretation)
+### Ninad → Kabya  (raw interpretation)
 
 ```python
 async def interpret_notes(notes: list[str], battery: BatteryInput) -> list[dict]
@@ -39,7 +39,7 @@ optional, because the model is allowed to get it wrong:
 
 Raises `InterpretationUnavailable` only when every provider is exhausted.
 
-### C → C  (validated directives, then constraints)
+### Kabya → Kabya  (validated directives, then constraints)
 
 ```python
 def validate_interpretations(raw: list[dict], notes: list[str],
@@ -51,7 +51,7 @@ def build_constraint_set(directives: list[Directive], hours: list[HourInput],
 `validate_interpretations` **never raises** and always returns exactly
 `len(notes)` directives with `note_index == 0..N-1`.
 
-### C → A  (plan)
+### Kabya → Anindya  (plan)
 
 ```python
 def solve(hours, battery, constraints) -> list[HourPlan]      # raises InfeasibleError
@@ -59,7 +59,7 @@ def safe_baseline_plan(hours, battery, constraints) -> list[HourPlan]   # never 
 def verify(plan, hours, battery, constraints) -> list[str]    # [] == valid
 ```
 
-### A → HTTP  (response)
+### Anindya → HTTP  (response)
 
 ```python
 async def run_pipeline(payload: ScenarioRequest, request_id: str) -> OptimizeResponse
@@ -82,7 +82,8 @@ Never raises for a well-formed scenario.
 
 ## Working agreement
 
-- Branch per member: `feat/a-api`, `feat/b-llm`, `feat/c-solver`, `feat/d-harness`.
+- Branch per person: `feat/anindya-api`, `feat/ninad-llm`, `feat/kabya-solver`,
+  `feat/fayek-harness`.
 - Small commits, push often, PR into `main`, do not force-push `main`.
 - If you need a stub from someone else that does not exist yet, write a local
   fake in **your own** file and delete it at integration. Do not edit their file.

@@ -1,5 +1,5 @@
 """
-HTTP surface.  OWNER: Member A.
+HTTP surface.  OWNER: Anindya — Lane A.
 
 Two endpoints, exactly as named in the Problem Statement:
     GET  /health            -> {"status": "ok"}
@@ -11,7 +11,7 @@ Status-code policy (Problem Statement §6.1):
     422  optional, semantically invalid but well-formed
     500  controlled internal error, no stack trace, no secrets
 
-This file starts life already serving /health so Member D can deploy the
+This file starts life already serving /health so Fayek can deploy the
 container in the first 20 minutes and keep a live URL warm all round.
 """
 

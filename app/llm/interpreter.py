@@ -1,5 +1,5 @@
 """
-Operator notes -> raw structured interpretation.  OWNER: Member B.
+Operator notes -> raw structured interpretation.  OWNER: Ninad — Lane B.
 
 This module is the mandatory LLM step. The Participant Guide is explicit: a
 language model must directly produce the structured interpretation that feeds
@@ -35,15 +35,15 @@ async def interpret_notes(notes: List[str], battery: BatteryInput) -> List[Dict[
         the judge's repeat traffic cost nothing;
       * raise InterpretationUnavailable only when every provider is exhausted.
     """
-    raise NotImplementedError("TODO(Member B): see docs/team/MEMBER-B-llm-interpretation.md")
+    raise NotImplementedError("TODO(Ninad): see docs/team/NINAD-lane-b-llm-interpretation.md")
 
 
 def extract_json(raw: str) -> Dict[str, Any]:
     """Tolerant JSON extraction: strips ```json fences, leading prose, trailing
     commentary. Raises ValueError if nothing parseable is found."""
-    raise NotImplementedError("TODO(Member B)")
+    raise NotImplementedError("TODO(Ninad)")
 
 
 def normalise_cache_key(note: str) -> str:
     """Lowercase, collapse whitespace, strip punctuation noise."""
-    raise NotImplementedError("TODO(Member B)")
+    raise NotImplementedError("TODO(Ninad)")

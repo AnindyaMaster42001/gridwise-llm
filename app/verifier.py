@@ -1,5 +1,5 @@
 """
-Self-replay of the final plan.  OWNER: Member C.
+Self-replay of the final plan.  OWNER: Kabya — Lane C.
 
 The judge replays hourly_plan hour by hour against its own ground-truth
 directives. We run the same replay against our own ConstraintSet before we
@@ -35,4 +35,4 @@ def verify(
     constraints: ConstraintSet,
 ) -> List[str]:
     """Return a list of human-readable violations. Empty list == valid."""
-    raise NotImplementedError("TODO(Member C): see docs/team/MEMBER-C-guardrails-optimizer.md")
+    raise NotImplementedError("TODO(Kabya): see docs/team/KABYA-lane-c-guardrails-optimizer.md")

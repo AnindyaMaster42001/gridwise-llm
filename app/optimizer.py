@@ -1,5 +1,5 @@
 """
-24-hour cost-minimising schedule.  OWNER: Member C.
+24-hour cost-minimising schedule.  OWNER: Kabya — Lane C.
 
 Formulation is a pure linear program — the battery here is lossless (no
 round-trip efficiency in the Problem Statement), so LP gives the exact optimum,
@@ -50,7 +50,7 @@ def solve(
     constraints: ConstraintSet,
 ) -> List[HourPlan]:
     """Optimal 24-entry plan. Raises InfeasibleError if the LP has no solution."""
-    raise NotImplementedError("TODO(Member C): see docs/team/MEMBER-C-guardrails-optimizer.md")
+    raise NotImplementedError("TODO(Kabya): see docs/team/KABYA-lane-c-guardrails-optimizer.md")
 
 
 def safe_baseline_plan(
@@ -69,4 +69,4 @@ def safe_baseline_plan(
     A valid expensive plan scores far better than an invalid cheap one: an
     invalid case loses its directive-application AND its optimization credit.
     """
-    raise NotImplementedError("TODO(Member C)")
+    raise NotImplementedError("TODO(Kabya)")

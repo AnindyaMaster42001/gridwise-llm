@@ -5,11 +5,11 @@
                              │
                    ┌─────────▼──────────┐
                    │  app/main.py       │  FastAPI, status codes, error shaping
-                   │  app/pipeline.py   │  orchestration + time budget      [A]
+                   │  app/pipeline.py   │  orchestration + time budget   ANINDYA
                    └─────────┬──────────┘
                              │  operator_notes + battery
                    ┌─────────▼──────────┐
-                   │  app/llm/          │  MANDATORY LLM STEP              [B]
+                   │  app/llm/          │  MANDATORY LLM STEP              NINAD
                    │   prompts.py       │  system prompt + flat JSON schema
                    │   client.py        │  provider abstraction + failover
                    │   interpreter.py   │  one call, cache, retry
@@ -17,23 +17,23 @@
                    └─────────┬──────────┘
                              │  raw dicts  (UNTRUSTED)
                    ┌─────────▼──────────┐
-                   │  app/guardrails.py │  repair → validate → Directive[] [C]
+                   │  app/guardrails.py │  repair → validate → Directive[] KABYA
                    │                    │  → ConstraintSet (per-hour arrays)
                    └─────────┬──────────┘
                              │  ConstraintSet (TRUSTED)
                    ┌─────────▼──────────┐
-                   │  app/optimizer.py  │  linear program, exact optimum    [C]
+                   │  app/optimizer.py  │  linear program, exact optimum   KABYA
                    │                    │  safe_baseline_plan() on failure
                    └─────────┬──────────┘
                              │  HourPlan[24]
                    ┌─────────▼──────────┐
-                   │  app/verifier.py   │  replay, same checks as the judge [C]
+                   │  app/verifier.py   │  replay, same checks as the judge KABYA
                    └─────────┬──────────┘
                              │  valid plan + totals recomputed from the plan
                              ▼
                         200 JSON response
 
-   harness/judge.py  ─── scores a live URL exactly like the organizers      [D]
+   harness/judge.py  ─── scores a live URL exactly like the organizers    FAYEK
 ```
 
 ## The one idea
@@ -49,7 +49,7 @@ the model being perfect.
   is allowed to repair it and allowed to demote it to `no_op`, but never to
   invent a directive. That is the exact guardrail wording in §08 of the spec.
 - **`ConstraintSet` is the waist of the hourglass.** The optimizer and the
-  verifier both read it and nothing else. That means Member C can build and test
+  verifier both read it and nothing else. That means Kabya can build and test
   the entire optimisation half with hand-written `ConstraintSet`s, before Member
   B's first prompt exists.
 - **The verifier is a copy of the judge, not a copy of the optimizer.** It must

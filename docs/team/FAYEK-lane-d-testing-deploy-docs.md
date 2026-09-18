@@ -1,10 +1,13 @@
-# Member D — judge harness, deployment, documentation, video
+# Lane D — judge harness, deployment, documentation, video
+
+**Owner: Fayek Ahmed**
 
 **You own:** `harness/judge.py`, `tests/*`, `Dockerfile`,
 `docker-compose.yml`, `README.md`, deploy config, the video
 **You must not edit:** `app/*` — if you find a bug there, report it to its owner
-(`docs/02-contracts.md` has the map). The one exception: you may edit
-`harness/paraphrase_bank.json` jointly with B.
+(`docs/02-contracts.md` has the map: `main.py`/`pipeline.py` are Anindya's,
+`llm/*` is Ninad's, the solver trio is Kabya's). The one exception: you may edit
+`harness/paraphrase_bank.json` jointly with Ninad.
 
 **Points you directly control:** all 10 of *Deployment & Docker Fallback*, all 10
 of *Documentation & Local Reproducibility*, and most of *Performance &
@@ -74,7 +77,7 @@ output.
 - `tests/test_samples.py` — all 10 cases through the app in-process
   (`httpx.ASGITransport`, no network), asserting schema + validity.
 - `tests/test_guardrails.py` — the table in `docs/04-guardrails.md`. Write these
-  even though C owns the module; tests are yours, and C will thank you.
+  even though Kabya owns the module — tests are yours, and they will thank you.
 - `tests/test_paraphrase.py` — drive `harness/paraphrase_bank.json`. Mark it
   `skipif` when no key is configured so CI stays offline and green.
 
@@ -146,8 +149,13 @@ Screen recording is fine; production polish is not scored.
 
 ## Agent prompt
 
+Paste this verbatim as the first message to your Claude Code agent.
+
+> You are working as **Fayek Ahmed**, owner of Lane D (judge harness,
+> deployment and documentation) on a four-person hackathon team.
+>
 > Read `docs/00-spec-digest.md`, `docs/06-scoring-and-risks.md`,
-> `docs/07-deployment.md` and `docs/team/MEMBER-D-testing-deploy-docs.md` in this
+> `docs/07-deployment.md` and `docs/team/FAYEK-lane-d-testing-deploy-docs.md` in this
 > repo. Implement `harness/judge.py` to score a live base URL in the organizers'
 > seven categories, and write `tests/test_samples.py` and
 > `tests/test_guardrails.py`. Only edit files under `harness/` and `tests/`, plus

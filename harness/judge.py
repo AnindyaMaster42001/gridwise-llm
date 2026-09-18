@@ -1,5 +1,5 @@
 """
-Local replica of the organizer's judge.  OWNER: Member D.
+Local replica of the organizer's judge.  OWNER: Fayek — Lane D.
 
 Run this against a live base URL and it prints a score in the same seven
 categories the organizers use, so the team can see the scoreboard before the
@@ -40,7 +40,7 @@ def main() -> int:
     parser.add_argument("--repeat", type=int, default=1)
     parser.add_argument("--json", action="store_true", help="machine-readable report")
     parser.parse_args()
-    raise NotImplementedError("TODO(Member D): see docs/team/MEMBER-D-testing-deploy-docs.md")
+    raise NotImplementedError("TODO(Fayek): see docs/team/FAYEK-lane-d-testing-deploy-docs.md")
 
 
 if __name__ == "__main__":

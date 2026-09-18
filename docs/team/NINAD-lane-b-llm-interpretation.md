@@ -1,17 +1,19 @@
-# Member B — LLM operator-note interpretation
+# Lane B — LLM operator-note interpretation
+
+**Owner: Muhaiminul Islam Ninad**
 
 **You own:** `app/llm/prompts.py`, `app/llm/client.py`, `app/llm/interpreter.py`,
 `app/llm/fallback.py`, `harness/paraphrase_bank.json`
-**You must not edit:** `app/main.py`, `app/pipeline.py` (A) · `app/guardrails.py`,
-`app/optimizer.py`, `app/verifier.py` (C) · `harness/judge.py`, `tests/*` (D) ·
-`app/schemas.py`, `app/config.py` (frozen)
+**You must not edit:** `app/main.py`, `app/pipeline.py` (Anindya) ·
+`app/guardrails.py`, `app/optimizer.py`, `app/verifier.py` (Kabya) ·
+`harness/judge.py`, `tests/*` (Fayek) · `app/schemas.py`, `app/config.py` (frozen)
 
 **Points you directly control:** all 25 of *LLM Directive Interpretation*, and
 you gate the 10 "ground-truth application" points inside category 2 — a note read
 wrong fails twice. You also own whether the team satisfies the **mandatory LLM
 requirement** at all.
 
-**Read first:** `docs/05-llm-interpretation.md` (your spec),
+**Read first:** `docs/05-llm-interpretation.md` (your full spec),
 `docs/00-spec-digest.md` §5–§6.
 
 ---
@@ -84,11 +86,11 @@ One call for all 1–3 notes. Order of operations:
    cases reuse wordings and the judge repeats requests — a hit is free latency.
 2. Primary provider, one retry on transient failure.
 3. Fallback provider.
-4. Raise `InterpretationUnavailable`; Member A catches it and calls your regex
+4. Raise `InterpretationUnavailable`; Anindya catches it and calls your regex
    interpreter.
 
 Return raw dicts exactly as `docs/02-contracts.md` specifies — **do not validate
-them**. That is Member C's module, deliberately, so that untrusted output has
+them**. That is Kabya's module, deliberately, so that untrusted output has
 exactly one place it can be laundered.
 
 `extract_json` must survive ```` ```json ```` fences, a leading "Here is the
@@ -139,11 +141,16 @@ without the bank.
 
 ## Agent prompt
 
+Paste this verbatim as the first message to your Claude Code agent.
+
+> You are working as **Muhaiminul Islam Ninad**, owner of Lane B (LLM
+> operator-note interpretation) on a four-person hackathon team.
+>
 > Read `docs/00-spec-digest.md`, `docs/05-llm-interpretation.md`,
-> `docs/02-contracts.md` and `docs/team/MEMBER-B-llm-interpretation.md` in this
+> `docs/02-contracts.md` and `docs/team/NINAD-lane-b-llm-interpretation.md` in this
 > repo. Implement `app/llm/prompts.py`, `app/llm/client.py`,
 > `app/llm/interpreter.py` and `app/llm/fallback.py` to the contract there. Only
 > edit files under `app/llm/` plus `harness/paraphrase_bank.json`. Do not
 > validate or normalise the model output — `app/guardrails.py` owns that and is
-> Member C's file. Then extend the paraphrase bank to 12 wordings per directive
+> Kabya's file. Then extend the paraphrase bank to 12 wordings per directive
 > type and report the accuracy per type.

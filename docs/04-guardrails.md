@@ -1,6 +1,6 @@
 # Guardrails — turning an untrusted guess into a legal directive
 
-Owner: **Member C**. Nothing in `app/guardrails.py` may call a network service.
+Owner: **Kabya** (Lane C). Nothing in `app/guardrails.py` may call a network service.
 Pure functions only, so the whole file is unit-testable without a key.
 
 ## The policy in one line

@@ -1,9 +1,12 @@
-# Member A — API surface & pipeline orchestration
+# Lane A — API surface & pipeline orchestration
+
+**Owner: Anindya Kundu**
 
 **You own:** `app/main.py`, `app/pipeline.py`
-**You must not edit:** `app/llm/*` (B) · `app/guardrails.py`, `app/optimizer.py`,
-`app/verifier.py` (C) · `harness/*`, `tests/*`, `Dockerfile`, `README.md` (D) ·
-`app/schemas.py`, `app/config.py` (frozen, team decision only)
+**You must not edit:** `app/llm/*` (Ninad) · `app/guardrails.py`,
+`app/optimizer.py`, `app/verifier.py` (Kabya) · `harness/*`, `tests/*`,
+`Dockerfile`, `README.md` (Fayek) · `app/schemas.py`, `app/config.py` (frozen,
+team decision only)
 
 **Points you directly control:** all 10 of *API Contract & Schema*, most of the
 10 for *Performance & Reliability*, and the correctness of the totals that every
@@ -145,8 +148,13 @@ async def _stub_interpret(notes, battery):
 
 ## Agent prompt
 
+Paste this verbatim as the first message to your Claude Code agent.
+
+> You are working as **Anindya Kundu**, owner of Lane A (API surface and
+> pipeline orchestration) on a four-person hackathon team.
+>
 > Read `docs/00-spec-digest.md`, `docs/01-architecture.md`, `docs/02-contracts.md`
-> and `docs/team/MEMBER-A-api-orchestration.md` in this repo. Implement
+> and `docs/team/ANINDYA-lane-a-api-orchestration.md` in this repo. Implement
 > `app/pipeline.py` and harden `app/main.py` to the contract there. Only edit
 > those two files. `app/schemas.py` is frozen. Where another member's module is
 > not yet implemented, write a local stub inside `app/pipeline.py` and mark it

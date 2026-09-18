@@ -1,5 +1,5 @@
 """
-Provider-agnostic chat client.  OWNER: Member B.
+Provider-agnostic chat client.  OWNER: Ninad — Lane B.
 
 Why an abstraction: the round is four hours and provider outages happen. The
 service must survive its primary model going down without losing the LLM from
@@ -43,7 +43,7 @@ class LLMClient:
         timeout_s: float = 8.0,
         temperature: float = 0.0,
     ) -> None:
-        raise NotImplementedError("TODO(Member B)")
+        raise NotImplementedError("TODO(Ninad)")
 
     async def complete_json(
         self,
@@ -58,14 +58,14 @@ class LLMClient:
         (OpenAI `response_format`, Gemini `responseSchema`); otherwise fall back
         to a JSON-only instruction plus tolerant extraction in interpreter.py.
         """
-        raise NotImplementedError("TODO(Member B)")
+        raise NotImplementedError("TODO(Ninad)")
 
 
 def build_primary() -> Optional[LLMClient]:
     """Client from LLM_* settings, or None when no key is configured."""
-    raise NotImplementedError("TODO(Member B)")
+    raise NotImplementedError("TODO(Ninad)")
 
 
 def build_fallback() -> Optional[LLMClient]:
     """Client from LLM_FALLBACK_* settings, or None."""
-    raise NotImplementedError("TODO(Member B)")
+    raise NotImplementedError("TODO(Ninad)")

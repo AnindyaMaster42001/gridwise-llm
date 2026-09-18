@@ -6,27 +6,29 @@ T+1:30 onward and only ever gets better.**
 
 ## T+0:00 → T+0:15 · everyone: align
 
-- Clone, `make install`, read `docs/00-spec-digest.md` and your own brief.
+- Clone, `make install`, read `docs/00-spec-digest.md` and your own brief in
+  `docs/team/` — Anindya lane A, Ninad lane B, Kabya lane C, Fayek lane D.
 - Confirm file ownership out loud (`docs/02-contracts.md`). Nobody edits
   `app/schemas.py` or `app/config.py`.
-- **B starts here, immediately:** get a provider key working and make one
+- **Ninad starts here, immediately:** get a provider key working and make one
   throwaway call. Key/quota problems are the only thing that can cost an hour,
   so find them at T+0:05, not T+2:00.
-- **D starts here, immediately:** push the skeleton to the host. `/health`
+- **Fayek starts here, immediately:** push the skeleton to the host. `/health`
   already works; get a live URL before anyone writes real code.
 
 ## T+0:15 → T+1:30 · build in parallel
 
-| Lane | Deliverable by T+1:30 |
+| Who | Deliverable by T+1:30 |
 |---|---|
-| **A** | `run_pipeline` end to end against a stubbed interpreter; `summarise_totals` exact; 400/500 handlers verified |
-| **B** | prompt v1 + client + `interpret_notes` returning real model output for all 10 public notes |
-| **C** | `validate_interpretations` + `build_constraint_set` + `solve` reproducing all 10 reference costs offline |
-| **D** | live URL serving `/health`; `harness/judge.py` scoring interpretation + schema; image pushed with tag `v1` |
+| **Anindya** (A) | `run_pipeline` end to end against a stubbed interpreter; `summarise_totals` exact; 400/500 handlers verified |
+| **Ninad** (B) | prompt v1 + client + `interpret_notes` returning real model output for all 10 public notes |
+| **Kabya** (C) | `validate_interpretations` + `build_constraint_set` + `solve` reproducing all 10 reference costs offline |
+| **Fayek** (D) | live URL serving `/health`; `harness/judge.py` scoring interpretation + schema; image pushed with tag `v1` |
 
-C is not blocked by B: hand-write `Directive` lists from
+Kabya is not blocked by Ninad: hand-write `Directive` lists from
 `tests/data/public_samples.json` expectations and solve against those.
-A is not blocked by B: stub `interpret_notes` to return all-`no_op`.
+Anindya is not blocked by Ninad either: stub `interpret_notes` to return
+all-`no_op`.
 
 ## T+1:30 · SYNC 1 — first integration (15 min, everyone in one call)
 
@@ -34,17 +36,17 @@ Merge all four branches into `main`. Target: **the real pipeline answers a real
 sample end to end**, even imperfectly. Deploy it. From this moment there is
 always something submittable.
 
-If a lane is not ready, integrate the other three and stub the fourth. Do not
-wait.
+If a lane is not ready, integrate the other three and stub the fourth — Anindya
+makes that call. Do not wait.
 
 ## T+1:45 → T+2:45 · harden
 
-| Lane | Focus |
+| Who | Focus |
 |---|---|
-| **A** | time budget, concurrency, fallback wiring, `plan_summary` truthfulness |
-| **B** | paraphrase bank to ≥ 12 wordings per type; prompt v2; caching; failover tested by revoking the primary key |
-| **C** | `verify()` complete; infeasibility ladder; `safe_baseline_plan`; rounding and neutrality snapping |
-| **D** | full judge harness incl. latency + malformed input; README quickstart written and **followed by someone else** |
+| **Anindya** | time budget, concurrency, fallback wiring, `plan_summary` truthfulness |
+| **Ninad** | paraphrase bank to ≥ 12 wordings per type; prompt v2; caching; failover tested by revoking the primary key |
+| **Kabya** | `verify()` complete; infeasibility ladder; `safe_baseline_plan`; rounding and neutrality snapping |
+| **Fayek** | full judge harness incl. latency + malformed input; README quickstart written and **followed by someone else** |
 
 ## T+2:45 · SYNC 2 — score ourselves (15 min)
 
@@ -58,7 +60,7 @@ Whatever the harness said. Then:
 
 - **Feature freeze at T+3:30.** No new behaviour after this, only fixes to
   things the harness reports as broken.
-- D records the 3-minute video (tie-break only, but ties happen at the cutoff).
+- Fayek records the 3-minute video (tie-break only, but ties happen at the cutoff).
 
 ## T+3:30 → T+3:50 · submit
 

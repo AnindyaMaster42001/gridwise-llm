@@ -1,5 +1,5 @@
 """
-Prompt assets for operator-note interpretation.  OWNER: Member B.
+Prompt assets for operator-note interpretation.  OWNER: Ninad — Lane B.
 
 The prompt is the single highest-leverage artifact in this repo: 25 of the 100
 points are scored directly on what comes out of it, and another 25 depend on it
@@ -25,9 +25,9 @@ from typing import List
 
 from app.schemas import BatteryInput
 
-SYSTEM_PROMPT = """TODO(Member B)"""
+SYSTEM_PROMPT = """TODO(Ninad)"""
 
-FEW_SHOT: List[dict] = []  # TODO(Member B): paraphrase-diverse, not copies of the public samples
+FEW_SHOT: List[dict] = []  # TODO(Ninad): paraphrase-diverse, not copies of the public samples
 
 
 def build_user_prompt(notes: List[str], battery: BatteryInput) -> str:
@@ -36,7 +36,7 @@ def build_user_prompt(notes: List[str], battery: BatteryInput) -> str:
     Must include the note list with explicit zero-based indices and the battery
     capacity (needed to resolve "50% of capacity" style reserves).
     """
-    raise NotImplementedError("TODO(Member B): see docs/team/MEMBER-B-llm-interpretation.md")
+    raise NotImplementedError("TODO(Ninad): see docs/team/NINAD-lane-b-llm-interpretation.md")
 
 
 def response_json_schema() -> dict:
@@ -54,4 +54,4 @@ def response_json_schema() -> dict:
     fields null. Flat schemas survive weaker models far better than a oneOf
     union, and app.guardrails re-assembles the exact structured_adjustment.
     """
-    raise NotImplementedError("TODO(Member B)")
+    raise NotImplementedError("TODO(Ninad)")

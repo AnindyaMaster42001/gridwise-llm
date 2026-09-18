@@ -1,8 +1,11 @@
-# Member C — guardrails, optimizer, verifier
+# Lane C — guardrails, optimizer, verifier
+
+**Owner: Kabya Mithun Saha**
 
 **You own:** `app/guardrails.py`, `app/optimizer.py`, `app/verifier.py`
-**You must not edit:** `app/main.py`, `app/pipeline.py` (A) · `app/llm/*` (B) ·
-`harness/*`, `tests/*` (D) · `app/schemas.py`, `app/config.py` (frozen)
+**You must not edit:** `app/main.py`, `app/pipeline.py` (Anindya) ·
+`app/llm/*` (Ninad) · `harness/*`, `tests/*` (Fayek) · `app/schemas.py`,
+`app/config.py` (frozen)
 
 **Points you directly control:** 20 of the 25 in *Directive Application &
 Constraint Correctness* (everything except B's extraction accuracy) and all 10 of
@@ -20,7 +23,7 @@ cases.
 Your whole lane is pure functions over data you can hand-write. Build the
 expected `Directive` lists straight from `tests/data/public_samples.json`
 (`cases[i].expected_output.directive_interpretation`) and you can implement,
-test and finish the entire optimisation half before B's first prompt exists.
+test and finish the entire optimisation half before Ninad's first prompt exists.
 Start there.
 
 ---
@@ -94,7 +97,7 @@ solar factors **multiply**, minimum energy takes the **max**, grid caps take the
 
 ## Task C5 — the infeasibility ladder (~15 min)
 
-Expose a helper A can call. Organizer scenarios are guaranteed feasible, so
+Expose a helper Anindya can call. Organizer scenarios are guaranteed feasible, so
 infeasible means *our interpretation is wrong*:
 
 1. all directives → 2. drop one at a time, `source == "fallback"` before
@@ -118,8 +121,13 @@ Log which rung fired.
 
 ## Agent prompt
 
+Paste this verbatim as the first message to your Claude Code agent.
+
+> You are working as **Kabya Mithun Saha**, owner of Lane C (guardrails,
+> optimizer and verifier) on a four-person hackathon team.
+>
 > Read `docs/00-spec-digest.md`, `docs/03-optimizer-formulation.md`,
-> `docs/04-guardrails.md` and `docs/team/MEMBER-C-guardrails-optimizer.md` in this
+> `docs/04-guardrails.md` and `docs/team/KABYA-lane-c-guardrails-optimizer.md` in this
 > repo, plus the verified spike at `docs/reference/lp_spike.py`. Implement
 > `app/optimizer.py`, `app/verifier.py` and `app/guardrails.py` to those specs.
 > Only edit those three files. Write `app/verifier.py` from the spec text, not by

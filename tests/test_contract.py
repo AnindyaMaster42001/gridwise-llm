@@ -2,7 +2,7 @@
 Contract smoke tests. These run offline and must stay green from minute zero —
 they are what tells the team that `main` is not broken.
 
-OWNER: Member D (extend with test_samples.py / test_guardrails.py).
+OWNER: Fayek (extend with test_samples.py / test_guardrails.py).
 """
 
 import json

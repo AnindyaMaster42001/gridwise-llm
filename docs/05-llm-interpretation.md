@@ -1,6 +1,6 @@
 # LLM interpretation — the 25-point module
 
-Owner: **Member B**. This is the mandatory step: a language-capable generative
+Owner: **Ninad** (Lane B). This is the mandatory step: a language-capable generative
 model must directly produce the structured interpretation that reaches the
 optimizer. An artifact reviewer may inspect the repo to confirm it.
 

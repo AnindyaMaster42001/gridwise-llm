@@ -3,26 +3,39 @@
 Four hours, four lanes, one service. Each lane is a **separate set of files** so
 nobody blocks anybody and nobody merge-conflicts.
 
-| Lane | Owner | Files | Points controlled |
+| Lane | Owner | Files they own | Points they control |
 |---|---|---|---|
-| [A — API & orchestration](MEMBER-A-api-orchestration.md) | | `app/main.py`, `app/pipeline.py` | 10 schema + most of 10 reliability |
-| [B — LLM interpretation](MEMBER-B-llm-interpretation.md) | | `app/llm/*` | **25** interpretation + gates 10 in application |
-| [C — Guardrails & optimizer](MEMBER-C-guardrails-optimizer.md) | | `app/guardrails.py`, `app/optimizer.py`, `app/verifier.py` | 20 application + **10** optimization |
-| [D — Harness, deploy & docs](MEMBER-D-testing-deploy-docs.md) | | `harness/*`, `tests/*`, `Dockerfile`, `README.md` | **30** deployment + docs + reliability |
+| [A — API & orchestration](ANINDYA-lane-a-api-orchestration.md) | **Anindya Kundu** | `app/main.py`, `app/pipeline.py` | 10 schema + most of 10 reliability |
+| [B — LLM interpretation](NINAD-lane-b-llm-interpretation.md) | **Muhaiminul Islam Ninad** | `app/llm/*` | **25** interpretation + gates 10 in application |
+| [C — Guardrails & optimizer](KABYA-lane-c-guardrails-optimizer.md) | **Kabya Mithun Saha** | `app/guardrails.py`, `app/optimizer.py`, `app/verifier.py` | 20 application + **10** optimization |
+| [D — Harness, deploy & docs](FAYEK-lane-d-testing-deploy-docs.md) | **Fayek Ahmed** | `harness/*`, `tests/*`, `Dockerfile`, `README.md` | **30** deployment + docs + reliability |
 
-Write your names into that table first thing.
+Open your own brief above. It has your tasks, the traps specific to your lane,
+your definition of done, and a prompt to paste into your Claude Code agent.
 
-## How to pick
+## Why the lanes fell this way
 
-- **B** goes to whoever is most comfortable with prompting and API clients. It is
-  the highest-variance lane and the one with a hard external dependency.
-- **C** goes to whoever is most comfortable with linear algebra / optimisation.
-  The formulation is already verified, so this lane is mostly careful
-  implementation — and it is the only lane that is never blocked by anyone.
-- **A** goes to whoever integrates well and stays calm; they own `main` being
-  green from T+1:30.
-- **D** goes to whoever ships. Thirty points, none of them dependent on the other
-  three finishing. Do not treat this as the "leftover" lane — it is the biggest.
+- **Anindya — A.** Set the repo up and already has the whole specification in
+  context, which is exactly what the integrator needs. From T+1:30 they own
+  `main` being green and decide what gets stubbed when a lane runs late.
+- **Ninad — B.** The highest-variance lane and the only one with a hard external
+  dependency: a provider key, a quota, and a model that has to read unseen
+  paraphrases correctly. It is also the largest single block of points (25).
+- **Kabya — C.** The most completely specified lane in the repo. The LP
+  formulation is already written down and verified against all ten public cases
+  (`docs/reference/lp_spike.py` matches the organizer's cost at +0.00 on every
+  one), so this is careful implementation rather than invention — and it is the
+  only lane that is never blocked waiting on anyone else.
+- **Fayek — D.** Thirty points: the live URL, the Docker image, the README and
+  the judge harness. None of it depends on the other three finishing, so it can
+  start at 7:00 PM and be largely done by 8:30. This is **not** the leftover
+  lane; it is the biggest one on the board.
+
+**Swapping is fine, but do it now, not at 9 PM.** The one thing worth swapping
+for: if someone other than Ninad is clearly stronger at prompting and HTTP
+clients, trade B; if someone other than Kabya is clearly stronger at linear
+algebra, trade C. Changing an assignment costs two edits (this table and the
+header of each brief). Changing it mid-round costs an hour.
 
 ## Working agreement
 

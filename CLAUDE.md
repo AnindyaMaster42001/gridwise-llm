@@ -17,7 +17,11 @@ schedule that obeys them.
 | `docs/05-llm-interpretation.md` | prompt rules and provider strategy |
 | `docs/06-scoring-and-risks.md` | the 100-point rubric and where points leak |
 | `docs/07-deployment.md` | hosting, Docker, secret hygiene |
-| `docs/team/` | the four individual briefs |
+| `docs/team/README.md` | who owns which lane, and the working agreement |
+| `docs/team/ANINDYA-lane-a-api-orchestration.md` | Anindya's brief — API + pipeline |
+| `docs/team/NINAD-lane-b-llm-interpretation.md` | Ninad's brief — LLM interpretation |
+| `docs/team/KABYA-lane-c-guardrails-optimizer.md` | Kabya's brief — guardrails + solver |
+| `docs/team/FAYEK-lane-d-testing-deploy-docs.md` | Fayek's brief — harness, deploy, docs |
 
 The organizers' PDFs are canonical. `docs/00-spec-digest.md` is faithful to them,
 but if you find a disagreement, the PDF wins and the digest gets fixed.
@@ -51,13 +55,13 @@ but if you find a disagreement, the PDF wins and the digest gets fixed.
 
 Four people work in parallel. Stay in your lane.
 
-| Files | Owner |
-|---|---|
-| `app/main.py`, `app/pipeline.py` | A |
-| `app/llm/*` | B |
-| `app/guardrails.py`, `app/optimizer.py`, `app/verifier.py` | C |
-| `harness/*`, `tests/*`, `Dockerfile`, `README.md` | D |
-| `app/schemas.py`, `app/config.py` | **frozen** — team decision only |
+| Files | Owner | Lane |
+|---|---|---|
+| `app/main.py`, `app/pipeline.py` | Anindya Kundu | A |
+| `app/llm/*` | Muhaiminul Islam Ninad | B |
+| `app/guardrails.py`, `app/optimizer.py`, `app/verifier.py` | Kabya Mithun Saha | C |
+| `harness/*`, `tests/*`, `Dockerfile`, `README.md` | Fayek Ahmed | D |
+| `app/schemas.py`, `app/config.py` | **frozen** — team decision only | — |
 
 Need a function from another lane that does not exist yet? Write a stub **in your
 own file**, mark it `# STUB — remove at integration`, and move on.

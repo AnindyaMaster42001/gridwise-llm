@@ -213,4 +213,11 @@ scripts/           smoke test, sample runner
 
 ## Team
 
-🔧 *names and lanes* — see [`docs/team/`](docs/team/README.md).
+| Member | Lane | Responsible for |
+|---|---|---|
+| **Anindya Kundu** | A | API surface, pipeline orchestration, integration |
+| **Muhaiminul Islam Ninad** | B | LLM operator-note interpretation, prompts, provider failover |
+| **Kabya Mithun Saha** | C | Deterministic guardrails, linear-program optimizer, replay verifier |
+| **Fayek Ahmed** | D | Judge harness, tests, deployment, Docker image, documentation |
+
+Individual build plans: [`docs/team/`](docs/team/README.md).
