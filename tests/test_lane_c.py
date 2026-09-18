@@ -604,3 +604,53 @@ def test_ladder_always_returns_twenty_four_hours():
     ]
     outcome = solve_with_ladder(hours, BATTERY, directives)
     assert [p.hour for p in outcome.plan] == list(range(24))
+
+
+def test_safe_baseline_pre_charges_far_enough_ahead_for_a_big_reserve():
+    """Regression: a reserve needing several hours of charging was met too late.
+
+    500 kWh at hour 12, starting from 200 with a 100 kWh/h charge limit, has to
+    begin charging at hour 10. A floor applied only in the hour it bites leaves
+    one hour of charging and lands at 300.
+    """
+    hours = flat_hours(demand=100.0, solar=0.0)
+    cs = build_constraint_set(
+        [directive(0, "minimum_battery_reserve", {"hours": [12], "minimum_energy_kwh": 500})],
+        hours, BATTERY,
+    )
+    plan = safe_baseline_plan(hours, BATTERY, cs)
+    assert verify(plan, hours, BATTERY, cs) == []
+    assert plan[12].battery_energy_after_kwh >= 500 - TOL
+
+
+def test_safe_baseline_handles_a_reserve_with_charging_blocked_just_before_it():
+    hours = flat_hours(demand=100.0, solar=0.0)
+    cs = build_constraint_set(
+        [directive(0, "minimum_battery_reserve", {"hours": [12], "minimum_energy_kwh": 400}),
+         directive(1, "no_charge_window", {"hours": [10, 11]})],
+        hours, BATTERY,
+    )
+    plan = safe_baseline_plan(hours, BATTERY, cs)
+    assert verify(plan, hours, BATTERY, cs) == []
+
+
+@pytest.mark.parametrize(
+    "battery",
+    [
+        BatteryInput(capacity_kwh=0, initial_energy_kwh=0, minimum_energy_kwh=0,
+                     max_charge_kwh_per_hour=0, max_discharge_kwh_per_hour=0),
+        BatteryInput(capacity_kwh=500, initial_energy_kwh=500, minimum_energy_kwh=50,
+                     max_charge_kwh_per_hour=100, max_discharge_kwh_per_hour=100),
+        BatteryInput(capacity_kwh=500, initial_energy_kwh=50, minimum_energy_kwh=50,
+                     max_charge_kwh_per_hour=100, max_discharge_kwh_per_hour=100),
+        BatteryInput(capacity_kwh=500, initial_energy_kwh=200, minimum_energy_kwh=50,
+                     max_charge_kwh_per_hour=0, max_discharge_kwh_per_hour=0),
+    ],
+    ids=["zero-capacity", "starts-full", "starts-empty", "immovable"],
+)
+def test_degenerate_batteries_still_produce_a_valid_plan(battery):
+    hours = flat_hours(demand=100.0, solar=30.0)
+    cs = build_constraint_set([], hours, battery)
+    plan = solve(hours, battery, cs)
+    assert verify(plan, hours, battery, cs) == []
+    assert verify(safe_baseline_plan(hours, battery, cs), hours, battery, cs) == []

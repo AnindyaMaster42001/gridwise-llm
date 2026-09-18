@@ -292,7 +292,8 @@ def safe_baseline_plan(
             desired[k] += take
             outstanding -= take
 
-    net, energy_after = _simulate(desired, battery, constraints)
+    floors = _reachability_floors(constraints, battery)
+    net, energy_after = _simulate(desired, battery, constraints, floors)
 
     # Close any residual so the day ends exactly where it started.
     for _ in range(8):
@@ -324,7 +325,7 @@ def safe_baseline_plan(
                 take = min(outstanding, max(0.0, room))
                 desired[h] += take
                 outstanding -= take
-        net, energy_after = _simulate(desired, battery, constraints)
+        net, energy_after = _simulate(desired, battery, constraints, floors)
 
     plan: List[HourPlan] = []
     for h in range(HORIZON):
@@ -363,22 +364,30 @@ def _simulate(
     desired: List[float],
     battery: BatteryInput,
     constraints: ConstraintSet,
+    floors: Optional[List[float]] = None,
 ) -> Tuple[List[float], List[float]]:
     """Clamp a wish-list of net movements into a physically legal sequence.
 
     Guarantees, by construction: rate limits, blocked windows, capacity, and the
     per-hour energy floor (which can force a charge the caller never asked for).
+
+    `floors` is the look-ahead floor from `_reachability_floors`. Without it a
+    reserve that needs several hours of charging is met too late: the floor is
+    only noticed in the hour it applies, by which time one hour of charging is
+    all that is left.
     """
     capacity = float(battery.capacity_kwh)
     energy = float(battery.initial_energy_kwh)
     max_charge = float(battery.max_charge_kwh_per_hour)
     max_discharge = float(battery.max_discharge_kwh_per_hour)
 
+    effective_floors = floors if floors is not None else _reachability_floors(constraints, battery)
+
     net: List[float] = []
     energy_after: List[float] = []
     for h in range(HORIZON):
         want = desired[h]
-        floor = min(float(constraints.min_energy_kwh[h]), capacity)
+        floor = effective_floors[h]
         # The floor can demand a charge; the ceiling and the rate limits then win.
         want = max(want, floor - energy)
         want = min(want, capacity - energy)
@@ -395,6 +404,28 @@ def _simulate(
         net.append(movement)
         energy_after.append(energy)
     return net, energy_after
+
+
+def _reachability_floors(constraints: ConstraintSet, battery: BatteryInput) -> List[float]:
+    """Per-hour energy floors that also account for how long charging takes.
+
+    A reserve of 500 kWh at hour 12 on a battery starting at 200 with a 100
+    kWh/h charge limit has to start charging at hour 10, not hour 12. Walking
+    the floors backwards propagates each requirement as far back as the charge
+    rate makes necessary. Hour 23 additionally carries the neutrality target,
+    so the run home to the initial level is planned for too.
+    """
+    capacity = float(battery.capacity_kwh)
+    initial = float(battery.initial_energy_kwh)
+    max_charge = float(battery.max_charge_kwh_per_hour)
+
+    floors = [min(float(constraints.min_energy_kwh[h]), capacity) for h in range(HORIZON)]
+    floors[HORIZON - 1] = max(floors[HORIZON - 1], min(initial, capacity))
+    for h in range(HORIZON - 2, -1, -1):
+        # Energy the next hour can start from and still reach its own floor.
+        climbable = 0.0 if constraints.charge_blocked[h + 1] else max_charge
+        floors[h] = max(floors[h], min(floors[h + 1] - climbable, capacity))
+    return floors
 
 
 # --------------------------------------------------------------------------
