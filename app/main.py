@@ -18,17 +18,19 @@ traceback — tracebacks are logged server-side and replaced by a flat error bod
 from __future__ import annotations
 
 import logging
+import math
 import time
 import uuid
 from contextlib import asynccontextmanager
+from typing import Any, Optional, Tuple
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.config import get_settings
-from app.schemas import ErrorResponse, HealthResponse, OptimizeResponse, ScenarioRequest
+from app.schemas import TOL, ErrorResponse, HealthResponse, OptimizeResponse, ScenarioRequest
 
 settings = get_settings()
 logging.basicConfig(
@@ -77,6 +79,12 @@ async def optimize_energy(payload: ScenarioRequest, request: Request) -> Optimiz
     # Imported late so that a broken pipeline module can never stop /health from
     # answering — readiness is worth 2 points on its own.
     from app.pipeline import run_pipeline
+
+    refusal = _unusable_request(payload, await _raw_body(request))
+    if refusal is not None:
+        status, reason = refusal
+        log.info("%d on /optimize-energy: %s", status, reason)
+        raise HTTPException(status_code=status, detail=reason)
 
     rid = uuid.uuid4().hex[:8]
     started = time.perf_counter()
@@ -131,6 +139,71 @@ async def _unhandled(request: Request, exc: Exception) -> JSONResponse:
         status_code=500,
         content=ErrorResponse(error="internal_error").model_dump(),
     )
+
+
+async def _raw_body(request: Request) -> Any:
+    """The already-parsed body, or None if it cannot be re-read.
+
+    Starlette caches the body, so this costs nothing and never consumes the
+    stream a second time. It is needed only to see JSON types that Pydantic
+    coerces away, such as a boolean where an hour belongs.
+    """
+    try:
+        return await request.json()
+    except Exception:
+        return None
+
+
+def _unusable_request(payload: ScenarioRequest, raw: Any) -> Optional[Tuple[int, str]]:
+    """Reject what the schema accepts but the physics cannot.
+
+    Pydantic enforces structure. Two classes of input get past it and would make
+    us answer 200 with a schedule we know is wrong, which scores worse than a
+    controlled refusal:
+
+    400 — values that are not valid JSON numbers at all. `Infinity` and `NaN`
+          are not JSON literals (RFC 8259), yet Python's decoder accepts them
+          and `ge=0` lets `inf` through. An infinite demand reaches the solver
+          and produces a plan that silently ignores that hour.
+
+    422 — well-formed but physically impossible battery parameters. Each of
+          these is infeasible from hour 0 once end-of-day neutrality is applied,
+          so no valid schedule exists to return. The Problem Statement offers
+          422 for exactly this case, and promises that real scoring scenarios
+          are feasible — so this can only ever fire on a robustness probe.
+    """
+    battery = payload.battery
+    numbers = {
+        "battery.capacity_kwh": battery.capacity_kwh,
+        "battery.initial_energy_kwh": battery.initial_energy_kwh,
+        "battery.minimum_energy_kwh": battery.minimum_energy_kwh,
+        "battery.max_charge_kwh_per_hour": battery.max_charge_kwh_per_hour,
+        "battery.max_discharge_kwh_per_hour": battery.max_discharge_kwh_per_hour,
+    }
+    for entry in payload.hours:
+        numbers[f"hours[{entry.hour}].demand_kwh"] = entry.demand_kwh
+        numbers[f"hours[{entry.hour}].solar_kwh"] = entry.solar_kwh
+        numbers[f"hours[{entry.hour}].tariff_bdt_per_kwh"] = entry.tariff_bdt_per_kwh
+    for field, value in numbers.items():
+        if not math.isfinite(value):
+            return 400, f"{field} must be a finite number."
+
+    # A JSON boolean is not an hour, but bool is an int subclass in Python and
+    # Pydantic coerces it to 0 or 1 without complaint.
+    if isinstance(raw, dict) and isinstance(raw.get("hours"), list):
+        for entry in raw["hours"]:
+            if isinstance(entry, dict) and isinstance(entry.get("hour"), bool):
+                return 400, "hours[].hour must be an integer, not a boolean."
+
+    if battery.initial_energy_kwh > battery.capacity_kwh + TOL:
+        return 422, "battery.initial_energy_kwh exceeds battery.capacity_kwh."
+    if battery.minimum_energy_kwh > battery.capacity_kwh + TOL:
+        return 422, "battery.minimum_energy_kwh exceeds battery.capacity_kwh."
+    if battery.minimum_energy_kwh > battery.initial_energy_kwh + TOL:
+        # End-of-day neutrality forces the battery back to initial_energy_kwh,
+        # which would then sit below its own floor at hour 23.
+        return 422, "battery.initial_energy_kwh starts below battery.minimum_energy_kwh."
+    return None
 
 
 def _first_error(exc: RequestValidationError) -> str:
