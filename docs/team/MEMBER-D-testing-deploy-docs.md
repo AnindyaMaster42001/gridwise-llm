@@ -1,6 +1,6 @@
 # Member D — judge harness, deployment, documentation, video
 
-**You own:** `harness/judge.py`, `harness/loadtest.py`, `tests/*`, `Dockerfile`,
+**You own:** `harness/judge.py`, `tests/*`, `Dockerfile`,
 `docker-compose.yml`, `README.md`, deploy config, the video
 **You must not edit:** `app/*` — if you find a bug there, report it to its owner
 (`docs/02-contracts.md` has the map). The one exception: you may edit
