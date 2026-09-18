@@ -1,7 +1,12 @@
 # secrets — never commit
 .env
 .env.*
-.env.example
+# `.env*` only catches files whose name STARTS with .env. A teammate handing
+# over `f.env` or `prod.env` would sail straight past it into a repo that goes
+# public after the deadline, so match the suffix too.
+*.env
+# ...but the template of NAMES (no values) must ship.
+!.env.example
 *.key
 *.pem
 secrets/
@@ -23,3 +28,6 @@ venv/
 *.log
 harness/reports/
 deploy/wheels/*.whl
+
+# Windows "downloaded file" metadata sidecars
+*:Zone.Identifier
