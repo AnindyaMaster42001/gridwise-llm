@@ -77,7 +77,7 @@ def main():
     else:
         manifest = json.loads(args.manifest.read_text(encoding="utf-8"))
         blockers.extend(f"submission field missing: {name}" for name in required if not manifest.get(name))
-        if manifest.get("video_duration_seconds",0) > 180: blockers.append("video exceeds 180 seconds")
+        if (manifest.get("video_duration_seconds") or 0) > 180: blockers.append("video exceeds 180 seconds")
         image = manifest.get("image_reference","")
         if image and "@sha256:" not in image: blockers.append("record the verified immutable image digest")
     print(json.dumps({"ready_for_external_verification":not blockers,"blockers":blockers,
