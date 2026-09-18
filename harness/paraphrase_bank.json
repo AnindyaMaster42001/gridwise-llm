@@ -1,0 +1,42 @@
+{
+  "_meta": {
+    "purpose": "Paraphrase robustness bank. 5 of the 25 interpretation points are scored on hidden paraphrases of the same rule, so every directive type needs many wordings that the public pack does not contain.",
+    "owner": "Member B writes the notes, Member D wires them into tests/test_paraphrase.py",
+    "usage": "Each entry is a note plus the ground truth it must resolve to under the battery in `battery_context`. Hours follow the start-inclusive / end-exclusive convention.",
+    "target": "at least 12 entries per directive type before submission"
+  },
+  "battery_context": {
+    "capacity_kwh": 200,
+    "initial_energy_kwh": 100,
+    "minimum_energy_kwh": 40,
+    "max_charge_kwh_per_hour": 50,
+    "max_discharge_kwh_per_hour": 50
+  },
+  "cases": [
+    {
+      "note": "PV production will drop to about 20% between 13:00 and 15:00.",
+      "expected": {"directive_type": "solar_reduction", "hours": [13, 14], "factor": 0.2}
+    },
+    {
+      "note": "Panel washing from one until three will leave roughly one-fifth of normal solar output.",
+      "expected": {"directive_type": "solar_reduction", "hours": [13, 14], "factor": 0.2}
+    },
+    {
+      "note": "Expect an 80% reduction in rooftop solar during the 1-3 PM maintenance window.",
+      "expected": {"directive_type": "solar_reduction", "hours": [13, 14], "factor": 0.2}
+    },
+    {
+      "note": "Hold half the pack in reserve for the evening peak, 7 PM to 10 PM.",
+      "expected": {"directive_type": "minimum_battery_reserve", "hours": [19, 20, 21], "minimum_energy_kwh": 100}
+    },
+    {
+      "note": "The inverter cannot take a charge overnight between 11 PM and 2 AM.",
+      "expected": {"directive_type": "no_charge_window", "hours": [0, 1, 23]},
+      "why": "wrap-around window; hours must still be returned ascending"
+    },
+    {
+      "note": "Please make sure the new intake batch gets the orientation email today.",
+      "expected": {"directive_type": "no_op", "hours": null}
+    }
+  ]
+}
