@@ -42,73 +42,49 @@ not implement production code in another member's files.
 
 ## Model configuration
 
-The selected primary is **Google Gemini `gemini-3.5-flash`**. The fallback
-is **OpenRouter `openrouter/free`**, through the existing `openai_compatible`
-provider setting and `https://openrouter.ai/api/v1` base URL. These are configured
-in [.env.example](.env.example) and [the deployment template](deploy/runtime.env.example).
-Actual provider calls remain Lane B's integration responsibility.
+Two providers from **two different vendors**, both chosen by measurement.
 
-`gemini-3.5-flash` was selected by measurement, not by default.
+| Role | Provider | Model | Traps | Mean latency |
+|---|---|---|---|---|
+| Primary | OpenRouter (`openai_compatible`) | `nex-agi/nex-n2.5-mini:free` | **6/6** | **4.89 s** |
+| Fallback | Google (`gemini`) | `gemini-3.5-flash` | **6/6** | 7.06 s |
 
-`gemini-2.5-flash` was the original pick and measured well, but Google now
-returns **404 "no longer available to new users"** for it on freshly-created API
-keys — so it cannot be the submitted default. Re-measured on 2026-09-18 against
-a new key: `gemini-flash-latest` and `gemini-3.6-flash` were both shedding load
-with HTTP 503, and `gemini-3.5-flash` answered every trap note correctly (80%
-reduction -> factor 0.2; 11 AM-2 PM -> `[11,12,13]`; 50% of capacity -> 100 kWh;
-distractor -> `no_op`). The `-flash-lite` variants remain excluded: they returned
-`[13, 14, 15]` for a 1 PM-3 PM window and fail the end-exclusive rule outright.
+Every candidate was run through this repository's own prompt, client and
+guardrails against six trap notes covering all five directive types plus a
+distractor — not through a vendor playground. Rejected, with the reason:
 
-Gemini 3 models are thinking models, and their thinking is drawn from the same
-`maxOutputTokens` budget as the answer. Left alone, `gemini-3.5-flash` took
-**19.0 s** and spent 377 tokens reasoning about a closed-form extraction task;
-with `thinkingConfig.thinkingLevel = "low"` it takes **7.1 s** and is still
-correct on every trap. The client applies that only to `gemini-3+`, because
-Gemini 2.5 uses a different field and rejects this one.
-
-> **Provider quota is a release blocker, not a detail.** A free-tier Gemini key is
-> capped at **20 requests per day, per model** (`quotaId
-> GenerateRequestsPerDayPerProjectPerModel-FreeTier`). That cannot serve a judged
-> round: once it is spent every request silently falls back to the deterministic
-> backup, which does not satisfy the mandatory-LLM requirement. Enable billing on
-> the Google Cloud project, or configure a second independent provider key, before
-> submitting. The quota is counted per model, so a fallback pointed at a *different*
-> model has its own allowance and buys some headroom, but it is a stopgap and not a
-> substitute for billing. `/health` does not detect an exhausted quota.
-
-Google documents the [Gemini model identifier](https://ai.google.dev/gemini-api/docs/models).
-OpenRouter documents its [free model router](https://openrouter.ai/openrouter/free)
-and [compatible API base URL](https://openrouter.ai/developers).
-The free router can choose different underlying models, so it is not a pinned
-model and cannot promise repeatable output or availability. Verify both providers
-with your accounts and quota before submission; a free fallback still needs an
-OpenRouter key. Record the actual responding model in internal, redacted telemetry.
-
-Set keys only in `.env` or your host's secret settings. Never put them in source,
-commands shown in the video, Git, or the Docker image. `ALLOW_NO_LLM=0` is required
-for the submitted service. The example selects zero per-provider retries so an
-8-second primary attempt plus an 8-second fallback leaves room in the 22-second
-request budget; measure this after Lane B integrates.
-
-| Environment variable | Purpose |
+| Candidate | Why not |
 |---|---|
-| `LLM_PROVIDER` | Primary provider adapter, selected `gemini` |
-| `LLM_MODEL` | Primary model identifier |
-| `LLM_API_KEY` | Primary credential; required for submission |
-| `LLM_BASE_URL` | Optional primary compatible endpoint override |
-| `LLM_FALLBACK_PROVIDER` | Fallback adapter, selected `openai_compatible` |
-| `LLM_FALLBACK_MODEL` | Fallback model or router identifier |
-| `LLM_FALLBACK_BASE_URL` | OpenRouter compatible API base URL |
-| `LLM_FALLBACK_API_KEY` | Fallback credential |
-| `LLM_TIMEOUT_S` | Per-provider timeout in seconds |
-| `LLM_MAX_RETRIES` | Retry count before failover |
-| `LLM_TEMPERATURE` | Sampling temperature |
-| `LLM_CACHE_SIZE` | In-process interpretation cache capacity |
-| `REQUEST_BUDGET_S` | Pipeline request budget; official deadline is 30 seconds |
-| `PORT` | Container listening port; local CLI also supplies `--port` |
-| `LOG_LEVEL` | Runtime logging level |
-| `ALLOW_NO_LLM` | Offline development only; never enable for submission |
-| `RUN_LIVE_LLM` | Test-only opt-in to calls that consume model quota |
+| `deepseek/deepseek-v4-flash-0731:free` | 6/6 correct but **16.45 s** mean — past the per-call timeout |
+| `gemini-2.5-flash` | **404 "no longer available to new users"** on freshly-created keys |
+| `gemini-flash-latest`, `gemini-3.6-flash` | HTTP 503 load-shedding |
+| `-flash-lite` variants | returned `[13, 14, 15]` for a 1 PM–3 PM window — fail the end-exclusive rule |
+
+The two are deliberately different vendors. An earlier configuration used two
+Gemini models behind one key, which is not insurance: a spent quota, a
+revocation or a billing stop took both paths down together.
+
+**Gemini 3 needs its thinking capped.** Gemini 3 models draw thinking tokens
+from the same `maxOutputTokens` budget as the answer, so on this extraction task
+they can spend the whole budget reasoning and return no text at all — which
+surfaces as "no JSON object found in the response". Measured on
+`gemini-3.5-flash`: **19.0 s and 377 thinking tokens** by default, **7.06 s and
+zero** with `thinkingConfig.thinkingLevel = "low"`, still correct on every trap.
+The client applies that only to `gemini-3+`; Gemini 2.5 uses a different field
+and rejects this one.
+
+**Budgets.** `LLM_MAX_RETRIES` is `0` on purpose: with a genuinely independent
+second vendor, reaching the other one beats asking the same one twice. Worst
+case is one attempt per vendor at 10 s each, inside the 22 s the pipeline allows
+for interpretation out of a 25 s budget, against the judge's 30 s hard timeout.
+
+> **Quota is the standing risk.** Both vendors are on free tiers — OpenRouter
+> caps `:free` models at roughly 50 requests/day until $10 of lifetime credit is
+> purchased, and Gemini's free tier is about 20/day per model. An exhausted
+> quota does not error: it degrades silently to the deterministic backup, which
+> does **not** satisfy the mandatory-LLM requirement. Buy the OpenRouter credit
+> or enable Google Cloud billing before a judged round, and check
+> `plan_summary` for "deterministic backup interpreter" to detect it.
 
 ## Local setup (Python 3.11)
 
