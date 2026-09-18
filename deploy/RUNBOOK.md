@@ -33,6 +33,47 @@ docker push $imageTag
 docker inspect --format='{{index .RepoDigests 0}}' $imageTag
 ```
 
+### Pushing without a Docker Hub account (GHCR)
+
+You already have a GitHub account and the `gh` CLI, so GitHub Container Registry
+is the shortest path — no new signup, and the package can live beside the repo.
+
+The default `gh` token does not carry package-write permission, so grant it once:
+
+```bash
+gh auth refresh -s write:packages
+```
+
+Then push. Note the lowercase owner: GHCR rejects capitals in the path.
+
+```bash
+OWNER=anindyamaster42001
+TAG="ghcr.io/$OWNER/gridwise-llm:v1"
+
+gh auth token | docker login ghcr.io -u "$OWNER" --password-stdin
+docker tag gridwise-llm:v1 "$TAG"
+docker push "$TAG"
+docker inspect --format='{{index .RepoDigests 0}}' "$TAG"
+```
+
+A GHCR package is **private by default**, and a private image fails the judge's
+pull exactly like no image at all. After the first push, open
+`https://github.com/users/$OWNER/packages/container/gridwise-llm/settings` and
+set visibility to **Public**.
+
+Verify it the way the judge will — from a shell with no credentials:
+
+```bash
+docker logout ghcr.io
+docker pull ghcr.io/<owner>/gridwise-llm@sha256:<digest>
+docker run --rm -p 8000:8000 -e LLM_API_KEY=... -e LLM_PROVIDER=gemini \
+  -e LLM_MODEL=gemini-3.5-flash ghcr.io/<owner>/gridwise-llm@sha256:<digest>
+curl -sS http://localhost:8000/health
+```
+
+Submit the **digest**, not the tag: a tag can be moved after submission, a
+digest cannot.
+
 6. Record the actual digest, URL, commit, and previous working digest in a copy of
    `deploy/submission.example.json` named `deploy/submission.json`. No secrets.
 7. On a machine that did not build the image, pull **that digest**, run the exact
