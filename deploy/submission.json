@@ -5,7 +5,7 @@
   "previous_image_reference": null,
   "video_url": null,
   "video_duration_seconds": null,
-  "verified_commit": "88d75fa0de1290e4deb7b82dea2b06248d995132",
+  "verified_commit": "5d70c83e83a00021c5e51016257e8677c8894890",
   "primary_provider": "gemini",
   "primary_model": "gemini-3.5-flash",
   "fallback_provider": "groq",
@@ -22,13 +22,13 @@
     "latency_local": "median 4.18s, p95 6.58s over the 10 public cases via HTTP"
   },
   "_open_blockers": {
-    "provider_quota": "MEASURED 2026-09-18 against the supplied key: gemini-2.5-flash is HARD 429 on the per-DAY free-tier quota (metric generate_content_free_tier_requests, limit 20) - it did not recover after the per-minute window elapsed. gemini-3-flash-preview has its own per-model allowance and did answer, but went 429 within a few requests too. The key itself is VALID (200 from generativelanguage.googleapis.com, both configured models present in its model list). This cannot serve a judged round. Enable billing on the Google Cloud project, or supply a key from a DIFFERENT vendor.",
-    "public_base_url": "DEPLOYED AND REACHABLE, but NOT yet submittable: LLM_API_KEY is not set on the Vercel project, so /optimize-energy is served by the deterministic fallback and the mandatory-LLM requirement is not met. Add the provider keys, redeploy, and confirm plan_summary no longer says 'deterministic backup interpreter'.",
-    "image_reference": "image builds and passes container_check; never pushed. Needs `docker login` then push with an exact tag, and the digest recorded here.",
+    "image_reference": "gridwise-llm:v1 builds and passes container_check (startup 1.95s, uid 10001, read-only rootfs, no secret patterns, healthy, clean shutdown) but has NEVER been pushed. See the GHCR path in deploy/RUNBOOK.md: the gh token needs `gh auth refresh -s write:packages`, and a GHCR package is PRIVATE by default.",
     "video_url": "script at deploy/VIDEO_SCRIPT.md, recording guide at deploy/VIDEO_GUIDE.md; not recorded.",
     "repo_visibility": "repository is PRIVATE, which is correct during the event. It must be made PUBLIC after the submission deadline or it cannot be evaluated.",
     "vercel_deployment_protection": "RESOLVED: the project shipped with Vercel Authentication on, which answered anonymous callers with a 302 to vercel.com/sso-api. Disabled; verified off via the API. Re-check after any project setting change.",
-    "fallback_is_not_independent": "LLM_API_KEY and LLM_FALLBACK_API_KEY in the supplied env file are the SAME VALUE. Pointing the fallback at a different Gemini model does buy a separate per-model daily allowance, which is why it is kept, but it is one key on one project: a revocation, a billing stop or a ban takes both paths down together."
+    "fallback_is_not_independent": "LLM_API_KEY and LLM_FALLBACK_API_KEY in the supplied env file are the SAME VALUE. Pointing the fallback at a different Gemini model does buy a separate per-model daily allowance, which is why it is kept, but it is one key on one project: a revocation, a billing stop or a ban takes both paths down together.",
+    "provider_quota": "Free tier. The key answers now, but free-tier daily caps are small and a judged round can exhaust them; a spent quota degrades silently to the regex backup, which does NOT satisfy the mandatory-LLM requirement. Enable billing before the round, and do not spend the day's allowance on casual testing.",
+    "key_exposed_in_chat": "The submitted API key was pasted into a chat transcript. It works, so keep it for the round, but ROTATE IT AFTERWARDS at https://aistudio.google.com/apikey."
   },
   "hosting_platform": "vercel (framework preset: fastapi, app/main.py at root)",
   "_fixed_in_release_prep": {
@@ -41,11 +41,11 @@
   "_live_verification": {
     "url": "https://gridwise-llm-anindya3.vercel.app",
     "health": "200 {\"status\":\"ok\"}",
-    "routing": "fixed - unknown route 404s in our error shape, malformed JSON 400s",
-    "judge_local_replica": "73.00/100 measured, 20/20 cases valid, p95 0.418s, 0% failures",
-    "deployment_protection": "disabled and verified anonymously",
-    "env_vars": "12 set on production and preview, all hidden/secret",
-    "failover_under_real_quota_exhaustion": "VERIFIED: with both Gemini models returning 429, one live request still returned HTTP 200 in 2.18s with the exact organizer-optimal cost for SAMPLE-01, via the regex backup. The service degrades rather than failing - but a request served this way does NOT satisfy the mandatory-LLM requirement.",
-    "llm_in_path": "NOT YET - blocked on quota, not on configuration"
+    "llm_in_path": "VERIFIED 2026-09-18: one live request served BY THE MODEL (plan_summary carries no fallback notice); interpretation matched organizer ground truth exactly; total_cost_bdt 38365.0 == reference for SAMPLE-01",
+    "latency_note": "that request took 11.2s including a cold start. The model call alone measures 7.1s with thinkingLevel=low. Expect 2/3 latency points, not 3/3; keep the function warm during judging.",
+    "routing": "unknown route 404s in our error shape, malformed JSON 400s",
+    "deployment_protection": "disabled, verified anonymously with curl",
+    "env_vars": "12 on production and preview, all hidden/secret",
+    "failover": "VERIFIED under real quota exhaustion: both models 429 -> regex backup -> still a valid 200 at the optimal cost"
   }
 }
