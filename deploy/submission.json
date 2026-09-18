@@ -8,8 +8,8 @@
   "verified_commit": "88d75fa0de1290e4deb7b82dea2b06248d995132",
   "primary_provider": "gemini",
   "primary_model": "gemini-2.5-flash",
-  "fallback_provider": "gemini",
-  "fallback_model": "gemini-3-flash-preview",
+  "fallback_provider": "groq",
+  "fallback_model": "llama-3.3-70b-versatile",
   "external_sample_report": null,
   "fresh_machine_reviewer": null,
   "_verified_locally": {
@@ -22,9 +22,15 @@
     "latency_local": "median 4.18s, p95 6.58s over the 10 public cases via HTTP"
   },
   "_open_blockers": {
-    "public_base_url": "no hosting platform selected or credentialed yet",
-    "image_reference": "image builds and passes container_check locally, but has never been pushed; a local build is not evidence of a pullable registry image",
-    "video_url": "script exists at deploy/VIDEO_SCRIPT.md; not recorded",
-    "provider_quota": "CRITICAL: the configured Gemini key is free tier, limited to 20 requests per day per model (quotaId GenerateRequestsPerDayPerProjectPerModel-FreeTier). This cannot serve a judged round. Enable billing on the Google Cloud project, or add a second independent provider key, before submitting."
+    "provider_quota": "CRITICAL AND FIRST: the configured Gemini key is free tier, 20 requests/day/model (quotaId GenerateRequestsPerDayPerProjectPerModel-FreeTier). A judged round exhausts this in minutes, after which every request silently falls back to the deterministic interpreter, which does not satisfy the mandatory-LLM requirement. Enable billing on the Google Cloud project, or add a key from a different vendor, BEFORE deploying.",
+    "public_base_url": "deploy/VERCEL.md is ready; needs `npx vercel login` (interactive) then `npx vercel --prod`. Vercel maxDuration is raised to 60s in vercel.json because the Hobby default of 10s would time out a request whose measured p95 is 6.58s.",
+    "image_reference": "image builds and passes container_check; never pushed. Needs `docker login` then push with an exact tag, and the digest recorded here.",
+    "video_url": "script at deploy/VIDEO_SCRIPT.md, recording guide at deploy/VIDEO_GUIDE.md; not recorded.",
+    "repo_visibility": "repository is PRIVATE, which is correct during the event. It must be made PUBLIC after the submission deadline or it cannot be evaluated."
+  },
+  "hosting_platform": "vercel",
+  "_fixed_in_release_prep": {
+    "dockerfile_model": "the image defaulted to gemini-3.1-flash-lite, which the README's own measurement records as failing the end-exclusive hour rule ([13,14,15] for 1 PM-3 PM). Corrected to the measured gemini-2.5-flash.",
+    "fallback_vendor": "four different fallbacks were configured across Dockerfile, .env.example, runtime.env.example and this manifest. Standardised on a DIFFERENT vendor (groq) so the fallback fails independently of the primary; no fallback is baked into the image."
   }
 }
