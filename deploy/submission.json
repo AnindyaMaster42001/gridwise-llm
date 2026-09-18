@@ -1,11 +1,11 @@
 {
   "public_base_url": "https://gridwise-llm-anindya3.vercel.app",
   "repository_url": "https://github.com/AnindyaMaster42001/gridwise-llm",
-  "image_reference": "ghcr.io/anindyamaster42001/gridwise-llm@sha256:a2dd9753cf2ef6e25f9243332a9b45b6b695b423242d51e98bcf88bf942eb7fa",
-  "previous_image_reference": "ghcr.io/anindyamaster42001/gridwise-llm@sha256:e74f0d56957edd23f86219d733aa22e11ff5aabffeeac8dc6ba7eda2bb52a32d",
+  "image_reference": "ghcr.io/anindyamaster42001/gridwise-llm@sha256:f67d19b4fe41146c3a94bdc9456f492b88e1750d03c9f70424aa02ef28bed6bb",
+  "previous_image_reference": "ghcr.io/anindyamaster42001/gridwise-llm@sha256:a2dd9753cf2ef6e25f9243332a9b45b6b695b423242d51e98bcf88bf942eb7fa",
   "video_url": null,
   "video_duration_seconds": null,
-  "verified_commit": "052773e702f02c675373a6c7903a17ebd5da096b",
+  "verified_commit": "01fba6eeb055a0bc4a3252bc38c08371c6bbcd54",
   "primary_provider": "gemini",
   "primary_model": "gemini-3.5-flash",
   "fallback_provider": "openai_compatible (OpenRouter)",
@@ -46,18 +46,17 @@
     "config_live": "openai_compatible / nex-agi/nex-n2.5-mini:free, fallback gemini/gemini-3.5-flash"
   },
   "image_tags": [
-    "ghcr.io/anindyamaster42001/gridwise-llm:v2",
-    "ghcr.io/anindyamaster42001/gridwise-llm:5422c82",
+    "ghcr.io/anindyamaster42001/gridwise-llm:v3",
+    "ghcr.io/anindyamaster42001/gridwise-llm:01fba6e",
     "ghcr.io/anindyamaster42001/gridwise-llm:latest"
   ],
   "_image_verification": {
-    "digest": "sha256:a2dd9753cf2ef6e25f9243332a9b45b6b695b423242d51e98bcf88bf942eb7fa",
-    "built_from_commit": "5422c82bf0e785021baef36457d6284a1f63b84b",
-    "baked_config": "provider=openai_compatible, model=nex-agi/nex-n2.5-mini:free, base=https://openrouter.ai/api/v1, fallback=gemini-3.5-flash, timeout=10s - read back from inside the running image",
-    "no_credentials": "no API_KEY in the image environment; zero secret-shaped strings in the layer history",
-    "container_check": "passed: startup 1.77s, uid 10001, read-only rootfs, healthy, clean shutdown, sample request valid against organizer ground truth",
-    "visibility": "package is public; previous digest verified pullable from a logged-out daemon",
-    "rollback": "previous_image_reference above is the last known-good image and remains pullable"
+    "digest": "sha256:f67d19b4fe41146c3a94bdc9456f492b88e1750d03c9f70424aa02ef28bed6bb",
+    "baked_config": "gemini/gemini-3.5-flash -> fallback openai_compatible/nex-agi/nex-n2.5-mini:free, read back from inside the running image",
+    "no_credentials": "zero API_KEY variables in the image environment",
+    "container_check": "passed: startup 1.61s, uid 10001, read-only rootfs, healthy, clean shutdown",
+    "anonymous_pull": "VERIFIED from a logged-out daemon by digest after deleting local copies; /health 200 from the pulled image",
+    "rollback": "previous_image_reference remains pullable"
   },
   "_model_selection": {
     "method": "every candidate run through our own prompt, client and guardrails against six trap notes covering all five directive types plus a distractor",
