@@ -72,6 +72,507 @@
       "why": "wrap-around window; hours must still be returned ascending"
     },
     {
+      "note": "Charging is locked out from 03:00 to 06:00 for the rectifier swap.",
+      "expected": {
+        "directive_type": "no_charge_window",
+        "hours": [
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "note": "Do not put energy into the battery between 9 AM and 11 AM.",
+      "expected": {
+        "directive_type": "no_charge_window",
+        "hours": [
+          9,
+          10
+        ]
+      },
+      "why": "the word 'charge' never appears"
+    },
+    {
+      "note": "The charge controller will be offline from 1 PM until 4 PM.",
+      "expected": {
+        "directive_type": "no_charge_window",
+        "hours": [
+          13,
+          14,
+          15
+        ]
+      }
+    },
+    {
+      "note": "No top-up of the pack is permitted from 5 AM to 7 AM.",
+      "expected": {
+        "directive_type": "no_charge_window",
+        "hours": [
+          5,
+          6
+        ]
+      }
+    },
+    {
+      "note": "Battery charging must be suspended between 14:00 and 17:00 while the cabinet is tested.",
+      "expected": {
+        "directive_type": "no_charge_window",
+        "hours": [
+          14,
+          15,
+          16
+        ]
+      }
+    },
+    {
+      "note": "Keep the charger idle from 10 PM until midnight.",
+      "expected": {
+        "directive_type": "no_charge_window",
+        "hours": [
+          22,
+          23
+        ]
+      }
+    },
+    {
+      "note": "The AC/DC converter is isolated for maintenance from 8 AM to 10 AM, so the battery cannot absorb energy.",
+      "expected": {
+        "directive_type": "no_charge_window",
+        "hours": [
+          8,
+          9
+        ]
+      }
+    },
+    {
+      "note": "Between 4 AM and 6 AM the battery must not be charged.",
+      "expected": {
+        "directive_type": "no_charge_window",
+        "hours": [
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "note": "Charging circuits are unavailable for the three hours from 11 AM.",
+      "expected": {
+        "directive_type": "no_charge_window",
+        "hours": [
+          11,
+          12,
+          13
+        ]
+      }
+    },
+    {
+      "note": "Refrain from charging the pack from 6 PM to 8 PM during the load test.",
+      "expected": {
+        "directive_type": "no_charge_window",
+        "hours": [
+          18,
+          19
+        ]
+      }
+    },
+    {
+      "note": "No energy may be stored into the battery between 12:00 and 15:00.",
+      "expected": {
+        "directive_type": "no_charge_window",
+        "hours": [
+          12,
+          13,
+          14
+        ]
+      }
+    },
+    {
+      "note": "The battery bank stops accepting charge from 7 AM until 9 AM.",
+      "expected": {
+        "directive_type": "no_charge_window",
+        "hours": [
+          7,
+          8
+        ]
+      }
+    },
+    {
+      "note": "Charging is disabled all day while the BMS firmware is replaced.",
+      "expected": {
+        "directive_type": "no_charge_window",
+        "hours": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23
+        ]
+      },
+      "why": "a real directive with no window covers the whole horizon"
+    },
+    {
+      "note": "Relay coordination checks mean the battery must not discharge between 4 PM and 7 PM.",
+      "expected": {
+        "directive_type": "no_discharge_window",
+        "hours": [
+          16,
+          17,
+          18
+        ]
+      }
+    },
+    {
+      "note": "The pack may not supply any load from 21:00 to 23:00.",
+      "expected": {
+        "directive_type": "no_discharge_window",
+        "hours": [
+          21,
+          22
+        ]
+      }
+    },
+    {
+      "note": "Battery discharge is blocked for the two hours starting at 5 AM.",
+      "expected": {
+        "directive_type": "no_discharge_window",
+        "hours": [
+          5,
+          6
+        ]
+      }
+    },
+    {
+      "note": "Do not draw down the battery between 11 AM and 2 PM.",
+      "expected": {
+        "directive_type": "no_discharge_window",
+        "hours": [
+          11,
+          12,
+          13
+        ]
+      }
+    },
+    {
+      "note": "Discharging is prohibited from 7 AM until 10 AM during the earth-fault survey.",
+      "expected": {
+        "directive_type": "no_discharge_window",
+        "hours": [
+          7,
+          8,
+          9
+        ]
+      }
+    },
+    {
+      "note": "From 10 PM to 1 AM the battery is not allowed to discharge.",
+      "expected": {
+        "directive_type": "no_discharge_window",
+        "hours": [
+          0,
+          22,
+          23
+        ]
+      },
+      "why": "wrap-around, ascending"
+    },
+    {
+      "note": "Keep the battery from discharging between 2 PM and 5 PM.",
+      "expected": {
+        "directive_type": "no_discharge_window",
+        "hours": [
+          14,
+          15,
+          16
+        ]
+      },
+      "why": "'keep' also starts a reserve phrasing; the discharge verb must win"
+    },
+    {
+      "note": "No battery output is permitted from 8 AM to 11 AM while the breaker is racked out.",
+      "expected": {
+        "directive_type": "no_discharge_window",
+        "hours": [
+          8,
+          9,
+          10
+        ]
+      }
+    },
+    {
+      "note": "The BESS must not deliver any energy between 18:00 and 20:00.",
+      "expected": {
+        "directive_type": "no_discharge_window",
+        "hours": [
+          18,
+          19
+        ]
+      }
+    },
+    {
+      "note": "Battery discharge must be halted for the three hours from 1 PM.",
+      "expected": {
+        "directive_type": "no_discharge_window",
+        "hours": [
+          13,
+          14,
+          15
+        ]
+      }
+    },
+    {
+      "note": "We cannot discharge the pack from midnight until 3 AM.",
+      "expected": {
+        "directive_type": "no_discharge_window",
+        "hours": [
+          0,
+          1,
+          2
+        ]
+      },
+      "why": "'midnight' as a start bound is hour 0"
+    },
+    {
+      "note": "Discharge is unavailable between 4 AM and 6 AM pending the protection reset.",
+      "expected": {
+        "directive_type": "no_discharge_window",
+        "hours": [
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "note": "Please avoid discharging the battery from 5 PM to 9 PM.",
+      "expected": {
+        "directive_type": "no_discharge_window",
+        "hours": [
+          17,
+          18,
+          19,
+          20
+        ]
+      }
+    },
+    {
+      "note": "Throughout the day the battery must not discharge while commissioning continues.",
+      "expected": {
+        "directive_type": "no_discharge_window",
+        "hours": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23
+        ]
+      }
+    },
+    {
+      "note": "The feeder is derated tonight: grid import must not exceed 140 kWh per hour from 7 PM to 10 PM.",
+      "expected": {
+        "directive_type": "max_grid_window",
+        "hours": [
+          19,
+          20,
+          21
+        ],
+        "max_grid_kwh": 140
+      }
+    },
+    {
+      "note": "Utility has capped our intake at 175 kWh each hour between 6 PM and 9 PM.",
+      "expected": {
+        "directive_type": "max_grid_window",
+        "hours": [
+          18,
+          19,
+          20
+        ],
+        "max_grid_kwh": 175
+      }
+    },
+    {
+      "note": "Keep purchased power under 120 kWh from 13:00 to 16:00.",
+      "expected": {
+        "directive_type": "max_grid_window",
+        "hours": [
+          13,
+          14,
+          15
+        ],
+        "max_grid_kwh": 120
+      }
+    },
+    {
+      "note": "Substation constraint: no more than 200 kWh may be drawn from the grid between 8 PM and 11 PM.",
+      "expected": {
+        "directive_type": "max_grid_window",
+        "hours": [
+          20,
+          21,
+          22
+        ],
+        "max_grid_kwh": 200
+      }
+    },
+    {
+      "note": "Grid draw is limited to 95 kWh per hour for the two hours starting at 6 AM.",
+      "expected": {
+        "directive_type": "max_grid_window",
+        "hours": [
+          6,
+          7
+        ],
+        "max_grid_kwh": 95
+      }
+    },
+    {
+      "note": "From 5 PM until 8 PM the incomer must stay at or below 165 kWh.",
+      "expected": {
+        "directive_type": "max_grid_window",
+        "hours": [
+          17,
+          18,
+          19
+        ],
+        "max_grid_kwh": 165
+      }
+    },
+    {
+      "note": "Transformer maintenance caps grid intake at 130 kWh from 11 AM to 2 PM.",
+      "expected": {
+        "directive_type": "max_grid_window",
+        "hours": [
+          11,
+          12,
+          13
+        ],
+        "max_grid_kwh": 130
+      }
+    },
+    {
+      "note": "Mains import should not go above 210 kWh between 19:00 and 22:00.",
+      "expected": {
+        "directive_type": "max_grid_window",
+        "hours": [
+          19,
+          20,
+          21
+        ],
+        "max_grid_kwh": 210
+      }
+    },
+    {
+      "note": "The utility limit of 180 kWh per hour applies from 9 PM through 11 PM.",
+      "expected": {
+        "directive_type": "max_grid_window",
+        "hours": [
+          21,
+          22
+        ],
+        "max_grid_kwh": 180
+      }
+    },
+    {
+      "note": "Do not import more than 150 kWh in any hour between 10 AM and 1 PM.",
+      "expected": {
+        "directive_type": "max_grid_window",
+        "hours": [
+          10,
+          11,
+          12
+        ],
+        "max_grid_kwh": 150
+      }
+    },
+    {
+      "note": "Feeder capacity is restricted to 100 kWh of import per hour from 4 AM to 7 AM.",
+      "expected": {
+        "directive_type": "max_grid_window",
+        "hours": [
+          4,
+          5,
+          6
+        ],
+        "max_grid_kwh": 100
+      }
+    },
+    {
+      "note": "Between 15:00 and 18:00 hold grid consumption to a maximum of 185 kWh.",
+      "expected": {
+        "directive_type": "max_grid_window",
+        "hours": [
+          15,
+          16,
+          17
+        ],
+        "max_grid_kwh": 185
+      }
+    },
+    {
+      "note": "Peak-shaving order: grid energy must stay below 160 kWh from 6 PM until 9 PM.",
+      "expected": {
+        "directive_type": "max_grid_window",
+        "hours": [
+          18,
+          19,
+          20
+        ],
+        "max_grid_kwh": 160
+      }
+    },
+    {
+      "note": "The supply point is constrained to 205 kWh per hour for the four hours from 7 PM.",
+      "expected": {
+        "directive_type": "max_grid_window",
+        "hours": [
+          19,
+          20,
+          21,
+          22
+        ],
+        "max_grid_kwh": 205
+      }
+    },
+    {
       "note": "Please make sure the new intake batch gets the orientation email today.",
       "expected": {
         "directive_type": "no_op",
