@@ -3,9 +3,14 @@
 The judge needs one public base URL answering `GET /health` and
 `POST /optimize-energy` with no login. This is the exact path to get there.
 
-`api/index.py` re-exports the same FastAPI app the container runs — there is no
-Vercel-specific code path, so what the judge exercises here is what the tests
-cover.
+Vercel auto-detects this project as `framework: fastapi` and serves
+`app/main.py` directly at the root. There is **no adapter file and no rewrite** —
+the judge exercises the same application the container and the tests do.
+
+> A `rewrites` rule is actively harmful here. It replaces the path the function
+> receives, so `/health` arrives as `/api/index/health` and the app correctly
+> 404s every route. The framework preset already routes the whole app; adding a
+> rewrite on top of it only breaks it.
 
 ---
 
@@ -16,13 +21,19 @@ service. All three are handled below, but you should know they exist.
 
 | Property | Effect here | Handling |
 |---|---|---|
-| Function duration cap | Hobby defaults to **10 s**; a p95 of 6.6 s plus a cold start would time out | `vercel.json` sets `maxDuration: 60` |
+| Function duration cap | Hobby defaults to **10 s**; a p95 of 6.6 s plus a cold start would time out | `vercel.json` sets `maxDuration: 60` on `app/main.py` — the glob must name the real entrypoint or it silently does nothing |
 | Cold starts | SciPy import costs ~0.8 s on top of container start | keep-warm ping below; `/health` never imports the solver |
 | No shared memory between invocations | the in-process interpretation cache resets, so more provider calls | matters most against a capped quota — see the blocker below |
 
-Bundle size is fine: NumPy + SciPy + FastAPI is about **170 MB** against
-Vercel's 250 MB uncompressed limit, and `.vercelignore` keeps tests, docs, the
-PDFs and the Docker files out of the function.
+Bundle size is fine: the built function measures **71 MB**, well under Vercel's
+250 MB uncompressed limit, because `.vercelignore` keeps tests, docs, the PDFs
+and the Docker files out of it.
+
+**Deployment Protection must be off.** A new Vercel project enables Vercel
+Authentication, which answers anonymous requests with a `302` to
+`vercel.com/sso-api`. The judge would see a login redirect, not the API, and the
+rules forbid requiring any login. Verify with a plain `curl` from outside your
+network — not a browser you are already signed into.
 
 > **Blocker that outranks deployment.** The configured Gemini key is free tier:
 > **20 requests per day, per model**. A judged round will exhaust that in

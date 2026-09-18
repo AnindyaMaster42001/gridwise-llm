@@ -290,12 +290,12 @@ can be claimed verified against a registry.
 
 ## Deployment
 
-The submitted service runs on **Vercel**, from `api/index.py`, which re-exports
-the same FastAPI application as the container and the local server — one code
-path, no host-specific behaviour. Every path is rewritten to that function by
-`vercel.json`, so `/health` and `/optimize-energy` keep their exact names, and
-`maxDuration` is raised to 60 s because the default 10 s would time out a
-request whose p95 is 6.6 s.
+The submitted service runs on **Vercel**. Vercel detects the project as
+`framework: fastapi` and serves `app/main.py` directly at the root, so there is
+no adapter file, no rewrite and no host-specific code path — the judge
+exercises the same application as the container and the test suite.
+`vercel.json` raises `maxDuration` to 60 s on that entrypoint, because the
+Hobby default of 10 s would time out a request whose measured p95 is 6.6 s.
 
 Full procedure, including the environment variables, the outside-network check
 and rollback: **[deploy/VERCEL.md](deploy/VERCEL.md)**.

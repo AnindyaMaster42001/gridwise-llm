@@ -1,5 +1,6 @@
 # Keep the function bundle under Vercel's 250 MB uncompressed limit and out of
-# the judge's way. Only app/ and api/ are needed at runtime.
+# the judge's way. Vercel's FastAPI preset serves app/main.py directly, so app/
+# and requirements.txt are all that is needed at runtime.
 .git
 .github
 .venv
