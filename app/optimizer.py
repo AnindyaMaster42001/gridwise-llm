@@ -293,39 +293,12 @@ def safe_baseline_plan(
             outstanding -= take
 
     floors = _reachability_floors(constraints, battery)
-    net, energy_after = _simulate(desired, battery, constraints, floors)
 
-    # Close any residual so the day ends exactly where it started.
-    for _ in range(8):
-        residual = energy_after[HORIZON - 1] - initial
-        if abs(residual) <= 1e-9:
-            break
-        if residual > 0.0:  # too much stored: discharge more, latest and dearest first
-            outstanding = residual
-            for h in sorted(range(HORIZON), key=lambda i: (-tariff[i], -i)):
-                if outstanding <= 1e-9:
-                    break
-                if constraints.discharge_blocked[h]:
-                    continue
-                room = max_discharge - max(0.0, -desired[h])
-                take = min(outstanding, max(0.0, room))
-                desired[h] -= take
-                outstanding -= take
-        else:  # too little stored: charge more, cheapest first
-            outstanding = -residual
-            for h in sorted(range(HORIZON), key=lambda i: (tariff[i], i)):
-                if outstanding <= 1e-9:
-                    break
-                if constraints.charge_blocked[h]:
-                    continue
-                room = max_charge - max(0.0, desired[h])
-                cap_h = constraints.max_grid_kwh[h]
-                if cap_h is not None:
-                    room = min(room, max(0.0, float(cap_h) - (idle_grid[h] + max(0.0, desired[h]))))
-                take = min(outstanding, max(0.0, room))
-                desired[h] += take
-                outstanding -= take
-        net, energy_after = _simulate(desired, battery, constraints, floors)
+    # Close the day out exactly where it started. This used to be a
+    # price-ordered sweep, which picked hours a later reserve floor would not
+    # allow and could also discharge more than an hour could absorb; the
+    # tail-aware pass below replaces it and is the only mechanism now.
+    net, energy_after = _close_neutrality(desired, battery, constraints, floors, idle_grid)
 
     plan: List[HourPlan] = []
     for h in range(HORIZON):
@@ -358,6 +331,93 @@ def safe_baseline_plan(
             )
         )
     return plan
+
+
+
+def _close_neutrality(
+    desired: List[float],
+    battery: BatteryInput,
+    constraints: ConstraintSet,
+    floors: List[float],
+    idle_grid: List[float],
+) -> Tuple[List[float], List[float]]:
+    """Drive end-of-day energy back to `initial_energy_kwh`, latest hours first.
+
+    Moving the battery in hour `h` shifts the stored energy of every hour from
+    `h` to 23 by the same amount, so the room available at `h` is the smallest
+    slack across that whole tail, never the slack at `h` alone:
+
+        discharging  ->  min over k >= h of (energy_after[k] - floor[k])
+        charging     ->  min over k >= h of (capacity - energy_after[k])
+
+    The cost-ordered pass above cannot see that, so an adjustment a later
+    reserve floor forbids is quietly undone by `_simulate` and the residual
+    never closes. Working backwards keeps the correction as late as possible,
+    which is also where it disturbs the rest of the plan least.
+
+    Charging additionally has to respect a max_grid_window cap, because it
+    raises that hour's import; discharging never does, because it lowers it.
+
+    End-of-day neutrality is a hard invalidator — a case that breaks it loses
+    its directive-application credit and its optimization credit together — so
+    this runs on every baseline even though it usually has nothing to do.
+    """
+    initial = float(battery.initial_energy_kwh)
+    capacity = float(battery.capacity_kwh)
+    max_charge = float(battery.max_charge_kwh_per_hour)
+    max_discharge = float(battery.max_discharge_kwh_per_hour)
+
+    net, energy_after = _simulate(desired, battery, constraints, floors)
+
+    for _ in range(HORIZON):
+        if abs(energy_after[HORIZON - 1] - initial) <= 1e-9:
+            break
+        progressed = False
+
+        for h in range(HORIZON - 1, -1, -1):
+            residual = energy_after[HORIZON - 1] - initial
+            if abs(residual) <= 1e-9:
+                break
+
+            if residual > 0.0:  # too much stored: discharge somewhere legal
+                if constraints.discharge_blocked[h]:
+                    continue
+                tail = min(energy_after[k] - floors[k] for k in range(h, HORIZON))
+                # There is no grid export, so an hour can only absorb as much
+                # discharge as it is currently importing: pushing past that
+                # would drive grid_kwh negative and break the energy balance.
+                absorbable = idle_grid[h] + net[h]
+                room = min(
+                    tail,
+                    max_discharge - max(0.0, -net[h]),
+                    energy_after[h],
+                    absorbable,
+                )
+                take = min(residual, max(0.0, room))
+                if take <= 1e-9:
+                    continue
+                desired[h] = net[h] - take
+            else:  # too little stored: charge somewhere legal
+                if constraints.charge_blocked[h]:
+                    continue
+                tail = min(capacity - energy_after[k] for k in range(h, HORIZON))
+                room = min(tail, max_charge - max(0.0, net[h]))
+                cap_h = constraints.max_grid_kwh[h]
+                if cap_h is not None:
+                    booked = idle_grid[h] + net[h]
+                    room = min(room, max(0.0, float(cap_h) - booked))
+                take = min(-residual, max(0.0, room))
+                if take <= 1e-9:
+                    continue
+                desired[h] = net[h] + take
+
+            net, energy_after = _simulate(desired, battery, constraints, floors)
+            progressed = True
+
+        if not progressed:
+            break
+
+    return net, energy_after
 
 
 def _simulate(
