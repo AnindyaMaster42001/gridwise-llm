@@ -6,10 +6,10 @@
   "video_url": null,
   "video_duration_seconds": null,
   "verified_commit": "bde58e9d1faeb3d73dbc355495341fec513be996",
-  "primary_provider": "gemini",
-  "primary_model": "gemini-3.5-flash",
+  "primary_provider": "openai_compatible (OpenRouter)",
+  "primary_model": "nex-agi/nex-n2.5-mini:free",
   "fallback_provider": "gemini",
-  "fallback_model": "gemini-3-flash-preview",
+  "fallback_model": "gemini-3.5-flash",
   "external_sample_report": null,
   "fresh_machine_reviewer": null,
   "_verified_locally": {
@@ -25,8 +25,7 @@
     "video_url": "script at deploy/VIDEO_SCRIPT.md, recording guide at deploy/VIDEO_GUIDE.md; not recorded.",
     "repo_visibility": "repository is PRIVATE, which is correct during the event. It must be made PUBLIC after the submission deadline or it cannot be evaluated.",
     "vercel_deployment_protection": "RESOLVED: the project shipped with Vercel Authentication on, which answered anonymous callers with a 302 to vercel.com/sso-api. Disabled; verified off via the API. Re-check after any project setting change.",
-    "fallback_is_not_independent": "LLM_API_KEY and LLM_FALLBACK_API_KEY in the supplied env file are the SAME VALUE. Pointing the fallback at a different Gemini model does buy a separate per-model daily allowance, which is why it is kept, but it is one key on one project: a revocation, a billing stop or a ban takes both paths down together.",
-    "provider_quota": "Free tier. The key answers now, but free-tier daily caps are small and a judged round can exhaust them; a spent quota degrades silently to the regex backup, which does NOT satisfy the mandatory-LLM requirement. Enable billing before the round, and do not spend the day's allowance on casual testing.",
+    "provider_quota": "Both vendors are free tier. OpenRouter reports is_free_tier=true, which caps :free models at roughly 50 requests/day until 10 USD of lifetime credit is purchased (then ~1000/day); Gemini free tier is ~20/day per model. Combined that is thin for a judged round, and an exhausted quota degrades SILENTLY to the regex backup, which does not satisfy the mandatory-LLM requirement. Buy 10 USD of OpenRouter credit, or enable Google Cloud billing, before the round.",
     "key_exposed_in_chat": "The submitted API key was pasted into a chat transcript. It works, so keep it for the round, but ROTATE IT AFTERWARDS at https://aistudio.google.com/apikey."
   },
   "hosting_platform": "vercel (framework preset: fastapi, app/main.py at root)",
@@ -60,5 +59,14 @@
     "anonymous_manifest": "HTTP 200 for both :v1 and the digest, using only GHCR's anonymous pull token",
     "run_from_pulled_image": "started as uid 10001, /health 200 within 2s, docker HEALTHCHECK reporting",
     "contract_from_pulled_image": "local judge replica 10/10 cases valid, schema 10/10, optimization 10/10, p95 0.592s, 0% failures (fallback path, no credentials supplied)"
+  },
+  "_model_selection": {
+    "method": "every candidate run through our own prompt, client and guardrails against six trap notes covering all five directive types plus a distractor",
+    "nex-agi/nex-n2.5-mini:free": "6/6 correct, 4.89s mean  <- PRIMARY",
+    "gemini-3.5-flash": "6/6 correct, 7.06s mean  <- FALLBACK (different vendor)",
+    "deepseek/deepseek-v4-flash-0731:free": "6/6 correct but 16.45s mean - past the per-call timeout, rejected on latency",
+    "gemini-2.5-flash": "404 'no longer available to new users' on freshly-created keys",
+    "gemini-flash-latest / gemini-3.6-flash": "HTTP 503 load-shedding",
+    "-flash-lite variants": "returned [13, 14, 15] for a 1 PM-3 PM window; fail the end-exclusive rule"
   }
 }

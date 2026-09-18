@@ -1,24 +1,31 @@
 FROM python:3.11-slim@sha256:9534e5a8e315485d4061ed659af0fd78a284c015f9b73661b41d6bab25604534
 
-# Only the measured primary is baked in.
+# Only measured configuration is baked in, and never a credential.
 #
-# gemini-2.5-flash was the original pick, but Google now returns 404 for it on
-# newly-created API keys: "no longer available to new users". Re-measured on
-# 2026-09-18 against a fresh key, gemini-3.5-flash answers all three trap notes
-# correctly (80% reduction -> factor 0.2, 11 AM-2 PM -> [11,12,13], 50% of
-# capacity -> 100 kWh, distractor -> no_op). The -flash-lite variants remain
-# excluded: they returned [13, 14, 15] for a 1 PM-3 PM window and fail the
-# end-exclusive rule outright.
+# Primary  OpenRouter nex-agi/nex-n2.5-mini:free - 6/6 trap notes correct at a
+#          4.89 s mean through our own prompt and guardrails.
+# Fallback Google gemini-3.5-flash              - 6/6 correct at 7.06 s.
 #
-# No fallback is baked in on purpose. A fallback is only insurance if it fails
-# independently, so it belongs to a DIFFERENT vendor with its own quota and its
-# own outage domain, supplied at runtime via LLM_FALLBACK_* . A second model on
-# the same key shares the same project, the same billing and the same ban.
+# They are deliberately different VENDORS. Earlier configurations used two
+# Gemini models on one key, which is not insurance: one spent quota, one
+# revocation or one billing stop took both paths down together.
+#
+# Rejected by measurement, not by taste: gemini-2.5-flash returns 404 "no
+# longer available to new users" on new keys; the -flash-lite variants return
+# [13, 14, 15] for a 1 PM-3 PM window and fail the end-exclusive rule;
+# deepseek-v4-flash:free is accurate but averages 16.5 s, past our per-call
+# timeout.
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PORT=8000 \
-    LLM_PROVIDER=gemini \
-    LLM_MODEL=gemini-3.5-flash
+    LLM_PROVIDER=openai_compatible \
+    LLM_MODEL=nex-agi/nex-n2.5-mini:free \
+    LLM_BASE_URL=https://openrouter.ai/api/v1 \
+    LLM_FALLBACK_PROVIDER=gemini \
+    LLM_FALLBACK_MODEL=gemini-3.5-flash \
+    LLM_TIMEOUT_S=10 \
+    LLM_MAX_RETRIES=0 \
+    REQUEST_BUDGET_S=25
 
 WORKDIR /app
 
